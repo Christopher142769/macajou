@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/assets/logo-macajou.png">
+<link rel="apple-touch-icon" href="/assets/logo-macajou.png">
 <title>Dashboard — Macajou Gourmandises</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -26,20 +28,31 @@
     </div>
   </div>
   <form id="loginForm" class="login-card" novalidate>
-    <div class="login-badge">MG</div>
+    <div class="login-badge"><img src="/assets/logo-macajou.png" alt="Macajou Gourmandises"></div>
     <h1>Bienvenue</h1>
     <p class="login-sub">Connectez-vous à votre tableau de bord</p>
     <div class="field">
       <label for="loginEmail">Email</label>
-      <input type="email" id="loginEmail" name="email" autocomplete="username" required value="admin@macajou.bj">
+      <input type="email" id="loginEmail" name="email" autocomplete="username" required placeholder="Votre adresse email">
     </div>
     <div class="field">
       <label for="loginPassword">Mot de passe</label>
-      <input type="password" id="loginPassword" name="password" autocomplete="current-password" required value="Macajou2026!" placeholder="Votre mot de passe">
+      <input type="password" id="loginPassword" name="password" autocomplete="current-password" required placeholder="Votre mot de passe">
     </div>
     <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Se connecter</button>
     <p id="loginError" class="err" role="alert"></p>
-    <p class="hint">Identifiants par défaut&nbsp;: admin@macajou.bj / Macajou2026!</p>
+  </form>
+  <form id="codeForm" class="login-card" novalidate hidden>
+    <div class="login-badge"><img src="/assets/logo-macajou.png" alt="Macajou Gourmandises"></div>
+    <h1>Code de sécurité</h1>
+    <p class="login-sub" id="codeHelp">Saisissez le code à 6 chiffres envoyé par email.</p>
+    <div class="field">
+      <label for="loginCode">Code de connexion</label>
+      <input type="text" id="loginCode" class="otp-input" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]{6}" placeholder="000000" required>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit" id="verifyCodeBtn">Valider le code</button>
+    <button class="btn btn-ghost btn-block" type="button" id="backToLogin">Revenir à la connexion</button>
+    <p id="codeError" class="err" role="alert"></p>
   </form>
 </div>
 
@@ -110,10 +123,10 @@
         <p id="pageDate"></p>
       </div>
       <div class="topbar-user">
-        <div class="avatar">MG</div>
+        <div class="avatar"><img src="/assets/logo-macajou.png" alt=""></div>
         <div class="topbar-user-txt">
           <strong>Admin Macajou</strong>
-          <span>admin@macajou.bj</span>
+          <span>macajou0@gmail.com</span>
         </div>
       </div>
     </header>

@@ -13,6 +13,7 @@ const siteMediaRoutes = require('./routes/siteMedia');
 const reportRoutes = require('./routes/reports');
 const categoryRoutes = require('./routes/categories');
 const mediaRoutes = require('./routes/media');
+const { ensureDefaultAdmin } = require('./services/admin');
 
 const app = express();
 
@@ -49,6 +50,8 @@ app.get('*', (req, res, next) => {
 async function start() {
   await mongoose.connect(config.mongoUri);
   console.log('MongoDB connecté');
+  await ensureDefaultAdmin();
+  console.log(`Administrateur synchronisé : ${config.adminEmail}`);
   await siteMediaRoutes.ensureSlots();
   await categoryRoutes.ensureDefaults();
   app.listen(config.port, () => {

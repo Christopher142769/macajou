@@ -62,11 +62,13 @@ svg{display:block}
 .login-features li{position:relative;padding-left:1.6rem;opacity:.9;font-size:.95rem}
 .login-features li::before{content:"";position:absolute;left:0;top:.55em;width:8px;height:8px;border-radius:50%;background:var(--beurre)}
 .login-card{align-self:center;justify-self:center;width:min(400px,90%);background:var(--paper);padding:2.6rem 2.3rem;border-radius:var(--radius);box-shadow:var(--shadow-lg);border:1px solid var(--line-soft)}
-.login-badge{width:56px;height:56px;border-radius:16px;background:var(--encre);color:var(--beurre);display:grid;place-items:center;font-family:var(--display);font-size:1.3rem;letter-spacing:.05em;margin-bottom:1.3rem;box-shadow:var(--shadow-sm)}
+.login-badge{width:76px;height:76px;border-radius:16px;background:var(--paper);display:grid;place-items:center;margin-bottom:1.3rem;box-shadow:var(--shadow-sm);overflow:hidden;border:1px solid var(--line-soft)}
+.login-badge img{width:100%;height:100%;object-fit:contain;padding:.45rem}
 .login-card h1{font-family:var(--display);font-weight:600;font-size:2.1rem}
 .login-sub{color:var(--muted);margin:.15rem 0 1.7rem;font-size:.95rem}
 .login-card .btn{margin-top:.4rem}
 .login-card .btn:disabled{opacity:.6;cursor:wait}
+.otp-input{text-align:center;font-size:1.55rem!important;font-weight:600;letter-spacing:.45em;font-variant-numeric:tabular-nums}
 .hint{font-size:.76rem;color:var(--muted);margin-top:1rem;line-height:1.5;padding-top:1rem;border-top:1px solid var(--line-soft)}
 @media(max-width:900px){
   .login-wrap{grid-template-columns:1fr}
@@ -102,7 +104,8 @@ svg{display:block}
 .topbar-title h1{font-family:var(--display);font-weight:600;font-size:1.7rem;line-height:1.1}
 .topbar-title p{font-size:.8rem;color:var(--muted);text-transform:capitalize}
 .topbar-user{display:flex;align-items:center;gap:.7rem}
-.avatar{width:42px;height:42px;border-radius:50%;background:var(--encre);color:var(--beurre);display:grid;place-items:center;font-family:var(--display);font-size:1rem;flex:none}
+.avatar{width:42px;height:42px;border-radius:50%;background:var(--paper);display:grid;place-items:center;overflow:hidden;border:1px solid var(--line);flex:none}
+.avatar img{width:100%;height:100%;object-fit:contain;padding:.2rem}
 .topbar-user-txt{display:flex;flex-direction:column;line-height:1.25}
 .topbar-user-txt strong{font-size:.9rem;font-weight:500}
 .topbar-user-txt span{font-size:.75rem;color:var(--muted)}

@@ -6,9 +6,12 @@ let categories = [];
 let galleryAssets = [];
 let mediaPickerMode = null;
 let mediaPickerSelection = new Set();
+let loginChallengeToken = '';
 
 const loginView = document.getElementById('loginView');
 const app = document.getElementById('app');
+const loginForm = document.getElementById('loginForm');
+const codeForm = document.getElementById('codeForm');
 
 function authHeaders(json = true) {
   const h = { Authorization: `Bearer ${token}` };
@@ -46,6 +49,9 @@ function showLogin() {
   localStorage.removeItem(TOKEN_KEY);
   app.hidden = true;
   loginView.hidden = false;
+  loginForm.hidden = false;
+  codeForm.hidden = true;
+  loginChallengeToken = '';
 }
 
 async function handleLogin(e) {
@@ -69,10 +75,16 @@ async function handleLogin(e) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    if (!data.token) throw new Error('Réponse invalide du serveur');
-    token = data.token;
-    localStorage.setItem(TOKEN_KEY, token);
-    showApp();
+    if (!data.requiresCode || !data.challengeToken) {
+      throw new Error('Réponse invalide du serveur');
+    }
+    loginChallengeToken = data.challengeToken;
+    loginForm.hidden = true;
+    codeForm.hidden = false;
+    document.getElementById('codeHelp').textContent =
+      `Un code à 6 chiffres a été envoyé à ${data.emailHint}.`;
+    document.getElementById('loginCode').value = '';
+    document.getElementById('loginCode').focus();
   } catch (ex) {
     console.error('Login failed', ex);
     err.textContent = ex.message || 'Connexion impossible';
@@ -82,7 +94,42 @@ async function handleLogin(e) {
   }
 }
 
-document.getElementById('loginForm').addEventListener('submit', handleLogin);
+loginForm.addEventListener('submit', handleLogin);
+
+codeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const code = document.getElementById('loginCode').value.replace(/\D/g, '').slice(0, 6);
+  const err = document.getElementById('codeError');
+  const btn = document.getElementById('verifyCodeBtn');
+  err.textContent = '';
+  if (code.length !== 6) {
+    err.textContent = 'Saisissez les 6 chiffres du code.';
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = 'Vérification…';
+  try {
+    const data = await api('/api/auth/verify-code', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ challengeToken: loginChallengeToken, code }),
+    });
+    if (!data.token) throw new Error('Réponse invalide du serveur');
+    token = data.token;
+    localStorage.setItem(TOKEN_KEY, token);
+    showApp();
+  } catch (ex) {
+    err.textContent = ex.message || 'Code invalide';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Valider le code';
+  }
+});
+
+document.getElementById('loginCode').addEventListener('input', (e) => {
+  e.target.value = e.target.value.replace(/\D/g, '').slice(0, 6);
+});
+document.getElementById('backToLogin').addEventListener('click', showLogin);
 
 document.getElementById('logoutBtn').addEventListener('click', showLogin);
 

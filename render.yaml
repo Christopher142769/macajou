@@ -19,3 +19,7 @@ services:
         sync: false
       - key: CLOUDINARY_URL
         sync: false
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_APP_PASSWORD
+        sync: false
