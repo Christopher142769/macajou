@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Réservation — Macajou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shop.css">
+<style>
+.box{max-width:640px;margin:0 auto;background:#fff;border:1px solid var(--line);padding:2rem}
+h1{font-family:var(--display);font-size:clamp(2rem,4vw,2.8rem);text-transform:uppercase;margin-bottom:.6rem;text-align:center}
+.lead{text-align:center;opacity:.75;margin-bottom:1.8rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.ok{display:none;text-align:center;padding:2rem}
+.ok.show{display:block}
+@media(max-width:640px){.row2{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="shop-top">Événements · Entreprises · Mariages</div>
+<header class="shop-nav">
+  <nav class="links left"><a href="/">Accueil</a><a href="/#cadeaux">Entreprises</a></nav>
+  <a class="logo" href="/">Macajou</a>
+  <nav class="links right"><a href="/panier.html">Panier <span class="cart-count" data-cart-count hidden>0</span></a></nav>
+</header>
+<main class="shop-wrap">
+  <div id="ok" class="ok">
+    <h1>Demande reçue</h1>
+    <p id="okMsg"></p>
+    <p style="margin-top:1.4rem"><a class="btn btn-outline" href="/">Retour à l’accueil</a></p>
+  </div>
+  <div id="formWrap">
+    <h1>Réserver</h1>
+    <p class="lead">Mariage, entreprise ou événement : décrivez votre projet, nous vous recontactons.</p>
+    <form id="form" class="box">
+      <div class="row2">
+        <div class="field"><label>Nom</label><input name="lastName" required></div>
+        <div class="field"><label>Prénom</label><input name="firstName" required></div>
+      </div>
+      <div class="field"><label>Téléphone</label><input name="phone" type="tel" required></div>
+      <div class="row2">
+        <div class="field"><label>Ville</label>
+          <select name="city" required><option value="">Choisir…</option><option>Cotonou</option><option>Calavi</option></select>
+        </div>
+        <div class="field"><label>Type</label>
+          <select name="type"><option>événement</option><option>entreprise</option><option>mariage</option><option>autre</option></select>
+        </div>
+      </div>
+      <div class="row2">
+        <div class="field"><label>Date de l’événement</label><input type="date" name="eventDate" required></div>
+        <div class="field"><label>Nombre d’invités (approx.)</label><input type="number" name="guests" min="0" value="0"></div>
+      </div>
+      <div class="field"><label>Votre projet</label><textarea name="message" required placeholder="Coffrets, pièce montée, quantités…"></textarea></div>
+      <button class="btn btn-rouge" type="submit" style="width:100%">Envoyer la demande</button>
+      <p id="err" style="color:var(--rouge);margin-top:.8rem" hidden></p>
+    </form>
+  </div>
+</main>
+<script src="/js/cart.js"></script>
+<script>
+document.getElementById('form').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const err=document.getElementById('err'); err.hidden=true;
+  const fd=new FormData(e.target);
+  try{
+    const res=await fetch('/api/reservations',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        customer:{
+          lastName:fd.get('lastName'),
+          firstName:fd.get('firstName'),
+          phone:fd.get('phone'),
+          city:fd.get('city'),
+        },
+        type:fd.get('type'),
+        eventDate:fd.get('eventDate'),
+        guests:Number(fd.get('guests')||0),
+        message:fd.get('message'),
+      }),
+    });
+    const data=await res.json();
+    if(!res.ok) throw new Error(data.error||'Erreur');
+    document.getElementById('formWrap').hidden=true;
+    const ok=document.getElementById('ok');
+    ok.classList.add('show');
+    document.getElementById('okMsg').textContent=`Réservation ${data.reservationNumber} enregistrée. Nous vous rappelons bientôt.`;
+  }catch(ex){
+    err.hidden=false; err.textContent=ex.message;
+  }
+});
+</script>
+</body>
+</html>

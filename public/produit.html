@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Produit — Macajou Gourmandises</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shop.css">
+<style>
+.pdp{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:3.5rem;align-items:start}
+.gallery{display:grid;grid-template-columns:72px 1fr;gap:1rem;position:sticky;top:110px}
+.thumbs{display:flex;flex-direction:column;gap:.6rem}
+.thumbs button{border:1px solid transparent;padding:0;background:var(--creme-2);cursor:pointer;aspect-ratio:1;overflow:hidden}
+.thumbs button.active,.thumbs button:hover{border-color:var(--encre)}
+.thumbs img{width:100%;height:100%;object-fit:cover}
+.main-shot{background:var(--creme-2);aspect-ratio:4/5;overflow:hidden}
+.main-shot img{width:100%;height:100%;object-fit:cover}
+.badge{display:inline-block;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--brun);margin-bottom:.6rem}
+.pdp h1{font-family:var(--display);font-weight:500;font-size:clamp(1.8rem,3.2vw,2.7rem);line-height:1.15;text-transform:uppercase;letter-spacing:.03em;max-width:18ch}
+.flavors{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem .8rem;margin:1.8rem 0 1.4rem}
+.flavor{text-align:center}
+.flavor .circle{width:64px;height:64px;border-radius:50%;margin:0 auto .45rem;background:var(--creme-2);overflow:hidden;border:1px solid var(--line)}
+.flavor .circle img{width:100%;height:100%;object-fit:cover}
+.flavor .name{font-size:.78rem;line-height:1.3}
+.flavor .qty{font-size:.7rem;opacity:.65}
+.price-row{display:flex;align-items:center;justify-content:space-between;gap:1rem;background:#e8e2d4;padding:1rem 1.2rem;margin:1.2rem 0}
+.price-row .stock{font-size:.85rem}
+.price-row .amount{font-family:var(--display);font-size:1.35rem}
+.ship{font-size:.78rem;opacity:.7;margin-bottom:1.4rem}
+.qty-row{display:flex;align-items:center;gap:1rem;margin-bottom:1rem}
+.qty-row input{width:72px;text-align:center;padding:.7rem;border:1px solid var(--line);background:#fff}
+.actions{display:flex;flex-wrap:wrap;gap:.8rem}
+.acc{border-top:1px solid var(--line);margin-top:2rem}
+.acc details{border-bottom:1px solid var(--line)}
+.acc summary{list-style:none;cursor:pointer;padding:1.1rem 0;display:flex;justify-content:space-between;align-items:center;font-family:var(--display);font-size:1.15rem}
+.acc summary::-webkit-details-marker{display:none}
+.acc summary::after{content:'+';font-size:1.2rem;opacity:.6}
+.acc details[open] summary::after{content:'−'}
+.acc .acc-body{padding:0 0 1.2rem;font-size:.95rem;opacity:.85;max-width:52ch}
+.loading,.error{padding:4rem 0;text-align:center;font-family:var(--display);font-size:1.4rem}
+@media(max-width:980px){
+  .pdp{grid-template-columns:1fr;gap:2rem}
+  .gallery{position:static;grid-template-columns:1fr}
+  .thumbs{flex-direction:row;order:2}
+  .thumbs button{width:64px;flex:0 0 64px}
+  .flavors{grid-template-columns:repeat(3,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="shop-top">Livraison 24h à Cotonou &amp; Calavi</div>
+<header class="shop-nav">
+  <nav class="links left">
+    <a href="/#collection">E-Shop</a>
+    <a href="/#adresses">Nos points de vente</a>
+    <a href="/#cadeaux">Entreprises</a>
+  </nav>
+  <a class="logo" href="/">Macajou</a>
+  <nav class="links right">
+    <a href="/panier.html" class="cart-link" aria-label="Panier">
+      Panier
+      <span class="cart-count" data-cart-count hidden>0</span>
+    </a>
+  </nav>
+</header>
+
+<main class="shop-wrap">
+  <div id="state" class="loading">Chargement…</div>
+  <div id="pdp" class="pdp" hidden></div>
+</main>
+
+<script src="/js/cart.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const slug = params.get('slug');
+const state = document.getElementById('state');
+const root = document.getElementById('pdp');
+let product = null;
+
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+async function load(){
+  if(!slug){
+    state.className='error';
+    state.textContent='Produit non spécifié.';
+    return;
+  }
+  try{
+    const res = await fetch('/api/products/slug/' + encodeURIComponent(slug));
+    if(!res.ok) throw new Error('introuvable');
+    product = await res.json();
+    render();
+  }catch{
+    state.className='error';
+    state.textContent='Ce produit est introuvable.';
+  }
+}
+
+function render(){
+  state.hidden = true;
+  root.hidden = false;
+  document.title = product.name + ' — Macajou';
+  const images = product.images?.length ? product.images : ['/uploads/placeholder-coffret12.svg'];
+  const flavors = product.flavors || [];
+  root.innerHTML = `
+    <div class="gallery">
+      <div class="thumbs" id="thumbs">
+        ${images.map((src,i)=>`<button type="button" class="${i===0?'active':''}" data-i="${i}"><img src="${esc(src)}" alt=""></button>`).join('')}
+      </div>
+      <div class="main-shot"><img id="mainImg" src="${esc(images[0])}" alt="${esc(product.name)}"></div>
+    </div>
+    <div class="info">
+      ${product.badge ? `<div class="badge">${esc(product.badge)}</div>` : ''}
+      <h1>${esc(product.name)}</h1>
+      ${flavors.length ? `<div class="flavors">${flavors.map(f=>`
+        <div class="flavor">
+          <div class="circle">${f.image?`<img src="${esc(f.image)}" alt="">`:''}</div>
+          <div class="name">${esc(f.name)}</div>
+          <div class="qty">x${esc(f.quantity||1)}</div>
+        </div>`).join('')}</div>` : (product.shortDescription?`<p style="margin:1.2rem 0;opacity:.8">${esc(product.shortDescription)}</p>`:'')}
+      <div class="price-row">
+        <span class="stock">${product.inStock!==false ? 'En stock' : 'En rupture'}</span>
+        <span class="amount fmt">${Cart.formatPrice(product.price)}</span>
+      </div>
+      <p class="ship">${esc(product.shippingNote||'Livraison express en 24h à Cotonou & Calavi')}</p>
+      <div class="qty-row">
+        <label for="qty">Quantité</label>
+        <input id="qty" type="number" min="1" value="1">
+      </div>
+      <div class="actions">
+        <button class="btn btn-dark" id="addBtn" ${product.inStock===false?'disabled':''}>Ajouter au panier</button>
+        <a class="btn btn-outline" href="/panier.html">Voir le panier</a>
+      </div>
+      <div class="acc">
+        <details open><summary>Description</summary><div class="acc-body">${esc(product.description||product.shortDescription||'—')}</div></details>
+        <details><summary>Ingrédients &amp; allergènes</summary><div class="acc-body">${esc(product.ingredients||'—')}</div></details>
+        <details><summary>Conservation</summary><div class="acc-body">${esc(product.conservation||'—')}</div></details>
+      </div>
+    </div>`;
+
+  document.getElementById('thumbs')?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('button[data-i]');
+    if(!btn) return;
+    const i = Number(btn.dataset.i);
+    document.getElementById('mainImg').src = images[i];
+    document.querySelectorAll('#thumbs button').forEach(b=>b.classList.toggle('active', b===btn));
+  });
+
+  document.getElementById('addBtn')?.addEventListener('click', ()=>{
+    const qty = Math.max(1, Number(document.getElementById('qty').value)||1);
+    Cart.add(product, qty);
+    Cart.toast('Ajouté au panier');
+  });
+}
+
+load();
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panier &amp; commande — Macajou</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shop.css">
+<style>
+.cart-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:3rem;align-items:start}
+h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.8rem}
+.line{display:grid;grid-template-columns:88px 1fr auto;gap:1rem;padding:1.2rem 0;border-bottom:1px solid var(--line);align-items:center}
+.line img{width:88px;height:88px;object-fit:cover;background:var(--creme-2)}
+.line h3{font-family:var(--display);font-size:1.15rem;font-weight:500;line-height:1.25}
+.line .meta{font-size:.85rem;opacity:.7;margin-top:.2rem}
+.line .controls{display:flex;align-items:center;gap:.5rem;margin-top:.55rem}
+.line .controls input{width:56px;text-align:center;padding:.35rem;border:1px solid var(--line);background:#fff}
+.line .controls button{border:none;background:transparent;cursor:pointer;text-decoration:underline;font-size:.8rem;opacity:.7}
+.line .price{font-family:var(--display);font-size:1.1rem;white-space:nowrap}
+.panel{background:#fff;border:1px solid var(--line);padding:1.6rem}
+.panel h2{font-family:var(--display);font-size:1.45rem;font-weight:500;margin-bottom:1rem}
+.summary{display:flex;justify-content:space-between;margin:1.2rem 0;padding-top:1rem;border-top:1px solid var(--line);font-family:var(--display);font-size:1.25rem}
+.empty{padding:3rem 0;opacity:.7}
+.success{display:none;text-align:center;padding:3rem 1rem}
+.success.show{display:block}
+.success h2{font-family:var(--display);font-size:2.2rem;margin-bottom:.6rem}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+@media(max-width:900px){
+  .cart-grid{grid-template-columns:1fr}
+  .row2{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="shop-top">Commande &amp; livraison Cotonou / Calavi</div>
+<header class="shop-nav">
+  <nav class="links left">
+    <a href="/#collection">E-Shop</a>
+    <a href="/">Accueil</a>
+  </nav>
+  <a class="logo" href="/">Macajou</a>
+  <nav class="links right">
+    <a href="/panier.html" class="cart-link">
+      Panier
+      <span class="cart-count" data-cart-count hidden>0</span>
+    </a>
+  </nav>
+</header>
+
+<main class="shop-wrap">
+  <div id="success" class="success">
+    <h2>Commande reçue</h2>
+    <p id="successMsg">Merci. Nous vous contactons rapidement pour confirmer la livraison.</p>
+    <p style="margin:1.4rem 0"><a class="btn btn-outline" href="/#collection">Continuer vos achats</a></p>
+  </div>
+
+  <div id="checkout">
+    <h1>Votre panier</h1>
+    <div class="cart-grid">
+      <div>
+        <div id="lines"></div>
+        <p id="empty" class="empty" hidden>Votre panier est vide. <a href="/#collection" style="text-decoration:underline">Découvrir la collection</a></p>
+      </div>
+      <aside class="panel">
+        <h2>Livraison</h2>
+        <form id="orderForm">
+          <div class="row2">
+            <div class="field">
+              <label for="lastName">Nom</label>
+              <input id="lastName" name="lastName" required autocomplete="family-name">
+            </div>
+            <div class="field">
+              <label for="firstName">Prénom</label>
+              <input id="firstName" name="firstName" required autocomplete="given-name">
+            </div>
+          </div>
+          <div class="field">
+            <label for="phone">Numéro de téléphone</label>
+            <input id="phone" name="phone" type="tel" required placeholder="ex. 01 XX XX XX XX" autocomplete="tel">
+          </div>
+          <div class="field">
+            <label for="city">Ville</label>
+            <select id="city" name="city" required>
+              <option value="">Choisir…</option>
+              <option value="Cotonou">Cotonou</option>
+              <option value="Calavi">Calavi</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="address">Adresse de livraison</label>
+            <textarea id="address" name="address" required placeholder="Quartier, rue, repères…"></textarea>
+          </div>
+          <div class="field">
+            <label for="notes">Notes (optionnel)</label>
+            <textarea id="notes" name="notes" placeholder="Horaires, précisions…"></textarea>
+          </div>
+          <div class="summary">
+            <span>Total</span>
+            <span id="total" class="fmt">0 FCFA</span>
+          </div>
+          <button class="btn btn-rouge" type="submit" style="width:100%" id="submitBtn">Valider la commande</button>
+          <p id="formError" style="color:var(--rouge);margin-top:.8rem;font-size:.9rem" hidden></p>
+        </form>
+      </aside>
+    </div>
+  </div>
+</main>
+
+<script src="/js/cart.js"></script>
+<script>
+const linesEl = document.getElementById('lines');
+const emptyEl = document.getElementById('empty');
+const totalEl = document.getElementById('total');
+const form = document.getElementById('orderForm');
+const formError = document.getElementById('formError');
+
+function render(){
+  const items = Cart.read();
+  totalEl.textContent = Cart.formatPrice(Cart.total());
+  if(!items.length){
+    linesEl.innerHTML = '';
+    emptyEl.hidden = false;
+    form.querySelector('button').disabled = true;
+    return;
+  }
+  emptyEl.hidden = true;
+  form.querySelector('button').disabled = false;
+  linesEl.innerHTML = items.map(i => `
+    <div class="line" data-id="${i.productId}">
+      <img src="${i.image || '/uploads/placeholder-coffret12.svg'}" alt="">
+      <div>
+        <h3><a href="/produit.html?slug=${encodeURIComponent(i.slug||'')}">${escapeHtml(i.name)}</a></h3>
+        <div class="meta">${Cart.formatPrice(i.price)} · unité</div>
+        <div class="controls">
+          <input type="number" min="1" value="${i.quantity}" data-qty>
+          <button type="button" data-remove>Retirer</button>
+        </div>
+      </div>
+      <div class="price fmt">${Cart.formatPrice(i.price * i.quantity)}</div>
+    </div>`).join('');
+}
+
+function escapeHtml(s){
+  return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+linesEl.addEventListener('change', (e)=>{
+  const input = e.target.closest('[data-qty]');
+  if(!input) return;
+  const id = input.closest('.line').dataset.id;
+  Cart.setQty(id, Number(input.value)||1);
+  render();
+});
+
+linesEl.addEventListener('click', (e)=>{
+  const btn = e.target.closest('[data-remove]');
+  if(!btn) return;
+  Cart.remove(btn.closest('.line').dataset.id);
+  render();
+});
+
+form.addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  formError.hidden = true;
+  const items = Cart.read();
+  if(!items.length) return;
+
+  const payload = {
+    customer: {
+      firstName: form.firstName.value.trim(),
+      lastName: form.lastName.value.trim(),
+      phone: form.phone.value.trim(),
+      city: form.city.value,
+      address: form.address.value.trim(),
+      notes: form.notes.value.trim(),
+    },
+    items: items.map(i => ({ productId: i.productId, quantity: i.quantity, name: i.name })),
+  };
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.textContent = 'Envoi…';
+  try{
+    const res = await fetch('/api/orders', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Erreur');
+    Cart.clear();
+    document.getElementById('checkout').hidden = true;
+    const success = document.getElementById('success');
+    success.classList.add('show');
+    document.getElementById('successMsg').textContent =
+      `Commande ${data.orderNumber} enregistrée. Nous vous appelons au ${payload.customer.phone} pour confirmer la livraison à ${payload.customer.city}.`;
+  }catch(err){
+    formError.hidden = false;
+    formError.textContent = err.message;
+    btn.disabled = false;
+    btn.textContent = 'Valider la commande';
+  }
+});
+
+render();
+window.addEventListener('macajou:cart', render);
+</script>
+</body>
+</html>

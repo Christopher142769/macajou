@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — Macajou Gourmandises</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/dashboard/css/dashboard.css">
+</head>
+<body>
+
+<!-- ============ LOGIN ============ -->
+<div id="loginView" class="login-wrap">
+  <div class="login-aside" aria-hidden="true">
+    <div class="login-aside-inner">
+      <div class="login-script">Macajou</div>
+      <h2>Espace<br>Administration</h2>
+      <p>Gérez vos produits, vos commandes, vos réservations et toutes les images du site depuis un seul endroit.</p>
+      <ul class="login-features">
+        <li>Catalogue &amp; fiches produit</li>
+        <li>Commandes &amp; réservations</li>
+        <li>Images &amp; vidéos du site</li>
+      </ul>
+    </div>
+  </div>
+  <form id="loginForm" class="login-card" novalidate>
+    <div class="login-badge">MG</div>
+    <h1>Bienvenue</h1>
+    <p class="login-sub">Connectez-vous à votre tableau de bord</p>
+    <div class="field">
+      <label for="loginEmail">Email</label>
+      <input type="email" id="loginEmail" name="email" autocomplete="username" required value="admin@macajou.bj">
+    </div>
+    <div class="field">
+      <label for="loginPassword">Mot de passe</label>
+      <input type="password" id="loginPassword" name="password" autocomplete="current-password" required value="Macajou2026!" placeholder="Votre mot de passe">
+    </div>
+    <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Se connecter</button>
+    <p id="loginError" class="err" role="alert"></p>
+    <p class="hint">Identifiants par défaut&nbsp;: admin@macajou.bj / Macajou2026!</p>
+  </form>
+</div>
+
+<!-- ============ APP ============ -->
+<div id="app" class="app" hidden>
+  <aside class="side">
+    <div class="side-brand">
+      <img class="side-logo" src="/assets/logo-macajou.png" alt="Macajou Gourmandises">
+    </div>
+
+    <nav class="side-nav">
+      <p class="side-cat">Pilotage</p>
+      <button type="button" data-tab="overview" data-title="Vue d’ensemble" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        <span>Vue d’ensemble</span>
+      </button>
+
+      <p class="side-cat">Boutique</p>
+      <button type="button" data-tab="products" data-title="Galerie produits">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
+        <span>Produits</span>
+      </button>
+      <button type="button" data-tab="categories" data-title="Catégories">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
+        <span>Catégories</span>
+      </button>
+      <button type="button" data-tab="gallery" data-title="Galerie Cloudinary">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 17l5-5 4 4 3-3 4 4"/></svg>
+        <span>Galerie</span>
+      </button>
+      <button type="button" data-tab="media" data-title="Images & vidéos du site">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9.5" r="1.8"/><path d="M4 17l5-5 4 4 3-3 4 4"/></svg>
+        <span>Images du site</span>
+      </button>
+
+      <p class="side-cat">Activité</p>
+      <button type="button" data-tab="orders" data-title="Commandes reçues">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 2l1.5 3M18 2l-1.5 3"/><path d="M4 6h16l-1.3 13.2a2 2 0 01-2 1.8H7.3a2 2 0 01-2-1.8L4 6z"/><path d="M9 11v5M15 11v5"/></svg>
+        <span>Commandes</span>
+        <em class="side-count" id="badgeOrders" hidden>0</em>
+      </button>
+      <button type="button" data-tab="reservations" data-title="Réservations">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        <span>Réservations</span>
+        <em class="side-count" id="badgeReservations" hidden>0</em>
+      </button>
+    </nav>
+
+    <div class="side-foot">
+      <a class="side-link" href="/" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M14 3h7v7M21 3l-9 9M21 14v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h5"/></svg>
+        Voir le site
+      </a>
+      <button type="button" id="logoutBtn" class="side-link logout">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        Déconnexion
+      </button>
+    </div>
+  </aside>
+
+  <div class="content">
+    <header class="topbar">
+      <button type="button" class="menu-toggle" id="menuToggle" aria-label="Menu">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+      <div class="topbar-title">
+        <h1 id="pageTitle">Vue d’ensemble</h1>
+        <p id="pageDate"></p>
+      </div>
+      <div class="topbar-user">
+        <div class="avatar">MG</div>
+        <div class="topbar-user-txt">
+          <strong>Admin Macajou</strong>
+          <span>admin@macajou.bj</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="main">
+      <!-- OVERVIEW -->
+      <section id="tab-overview" class="tab active">
+        <div class="analytics-hero">
+          <div class="analytics-copy">
+            <span class="eyebrow">Tableau de bord</span>
+            <h2>Votre activité en un coup d’œil</h2>
+            <p>Analysez les ventes, comparez les périodes et exportez vos bilans.</p>
+          </div>
+          <div class="analytics-orb" aria-hidden="true"><span>MG</span></div>
+        </div>
+
+        <div class="report-toolbar">
+          <div class="report-filters">
+            <div class="compact-field">
+              <label for="reportPeriod">Période</label>
+              <select id="reportPeriod">
+                <option value="today">Aujourd’hui</option>
+                <option value="7d">7 derniers jours</option>
+                <option value="30d" selected>30 derniers jours</option>
+                <option value="90d">90 derniers jours</option>
+                <option value="year">Cette année</option>
+                <option value="all">Toutes les périodes</option>
+                <option value="custom">Dates personnalisées</option>
+              </select>
+            </div>
+            <div class="compact-field">
+              <label for="reportProduct">Produit</label>
+              <select id="reportProduct"><option value="all">Tous les produits</option></select>
+            </div>
+            <div class="compact-field custom-date" id="customStartWrap" hidden>
+              <label for="reportStart">Du</label>
+              <input type="date" id="reportStart">
+            </div>
+            <div class="compact-field custom-date" id="customEndWrap" hidden>
+              <label for="reportEnd">Au</label>
+              <input type="date" id="reportEnd">
+            </div>
+            <button type="button" class="btn btn-primary report-apply" id="applyReport">Appliquer</button>
+          </div>
+          <div class="export-menu">
+            <span>Exporter le bilan</span>
+            <button type="button" class="export-btn pdf" data-export="pdf">PDF</button>
+            <button type="button" class="export-btn xlsx" data-export="xlsx">Excel</button>
+            <button type="button" class="export-btn docx" data-export="docx">Word</button>
+          </div>
+        </div>
+
+        <div class="stat-grid stat-grid-6">
+          <article class="stat-card">
+            <div class="stat-ic ic-rouge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statProducts">—</span><span class="stat-lbl">Produits publiés</span><div class="stat-spark" id="sparkProducts"></div></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16l-1.3 13.2a2 2 0 01-2 1.8H7.3a2 2 0 01-2-1.8L4 6z"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statOrders">—</span><span class="stat-lbl">Commandes</span><div class="stat-spark" id="sparkOrders"></div></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ic ic-brun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statRevenue">—</span><span class="stat-lbl">Chiffre d’affaires</span><div class="stat-spark" id="sparkRevenue"></div></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ic ic-encre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statReservations">—</span><span class="stat-lbl">Réservations</span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ic ic-rouge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statBasket">—</span><span class="stat-lbl">Panier moyen</span></div>
+          </article>
+          <article class="stat-card">
+            <div class="stat-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div>
+            <div class="stat-body"><span class="stat-num" id="statItems">—</span><span class="stat-lbl">Articles vendus</span></div>
+          </article>
+        </div>
+
+        <div class="bento-grid">
+          <article class="panel bento-sales">
+            <div class="panel-head">
+              <div><span class="eyebrow">Performance</span><h2>Évolution du chiffre d’affaires</h2></div>
+              <div class="chart-legend"><i class="lg red"></i> CA · <i class="lg gold"></i> Commandes</div>
+            </div>
+            <div class="chart-wrap chart-wrap-lg" id="salesChart"><div class="chart-empty"><div class="empty-viz"></div><p>Chargement…</p></div></div>
+          </article>
+
+          <article class="panel bento-volume">
+            <div class="panel-head"><div><span class="eyebrow">Volume</span><h2>Commandes par période</h2></div></div>
+            <div class="chart-wrap" id="volumeChart"><div class="chart-empty"><div class="empty-viz bars"></div><p>Chargement…</p></div></div>
+          </article>
+
+          <article class="panel bento-products">
+            <div class="panel-head"><div><span class="eyebrow">Catalogue</span><h2>Top produits</h2></div></div>
+            <div id="topProductsChart" class="bar-list bar-list-tall"><div class="chart-empty"><div class="empty-viz donut"></div><p>Chargement…</p></div></div>
+          </article>
+
+          <article class="panel bento-city">
+            <div class="panel-head"><div><span class="eyebrow">Géographie</span><h2>Livraisons par ville</h2></div></div>
+            <div class="donut-wrap" id="cityChart"></div>
+            <div class="donut-legend" id="cityLegend"></div>
+          </article>
+
+          <article class="panel bento-status">
+            <div class="panel-head"><div><span class="eyebrow">Suivi</span><h2>Statut des commandes</h2></div></div>
+            <div class="donut-wrap" id="statusChart"></div>
+            <div class="donut-legend" id="statusLegend"></div>
+          </article>
+
+          <article class="panel bento-kpi">
+            <div class="panel-head"><div><span class="eyebrow">Indicateurs</span><h2>Santé de l’activité</h2></div></div>
+            <div class="kpi-rings" id="kpiRings"></div>
+          </article>
+
+          <article class="panel bento-recent">
+            <div class="panel-head">
+              <h2>Dernières commandes</h2>
+              <button type="button" class="btn btn-ghost btn-sm" data-goto="orders">Tout voir</button>
+            </div>
+            <div id="recentOrders" class="mini-list mini-list-tall"><p class="muted">Chargement…</p></div>
+          </article>
+
+          <article class="panel bento-quick">
+            <div class="panel-head"><h2>Actions rapides</h2></div>
+            <div class="quick-actions quick-actions-tall">
+              <button type="button" class="quick" id="quickNewProduct">
+                <span class="quick-ic">＋</span>
+                <span><strong>Nouveau produit</strong><small>Ajouter au catalogue</small></span>
+              </button>
+              <button type="button" class="quick" data-goto="media">
+                <span class="quick-ic">🖼</span>
+                <span><strong>Images du site</strong><small>Photos &amp; vidéos</small></span>
+              </button>
+              <button type="button" class="quick" data-goto="orders">
+                <span class="quick-ic">📦</span>
+                <span><strong>Commandes</strong><small>Suivre les livraisons</small></span>
+              </button>
+              <a class="quick" href="/" target="_blank" rel="noopener">
+                <span class="quick-ic">↗</span>
+                <span><strong>Voir la boutique</strong><small>Ouvrir le site public</small></span>
+              </a>
+            </div>
+          </article>
+        </div>
+      </section>
+      <section id="tab-products" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Galerie produits</h2>
+            <p class="section-sub">Gérez le catalogue, les prix, les photos et les fiches.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newProductBtn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M12 5v14M5 12h14"/></svg>
+            Nouveau produit
+          </button>
+        </div>
+        <div id="productsGrid" class="cards"></div>
+
+        <dialog id="productDialog">
+          <form method="dialog" id="productForm" class="dialog-form">
+            <div class="dialog-head">
+              <h3 id="productDialogTitle">Produit</h3>
+              <button type="button" class="icon-btn" id="cancelProduct" aria-label="Fermer">✕</button>
+            </div>
+            <input type="hidden" id="productId">
+            <div class="grid2">
+              <div class="field"><label>Nom</label><input id="pName" required></div>
+              <div class="field"><label>Badge</label><input id="pBadge" placeholder="Signature, Édition…"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Prix (FCFA)</label><input id="pPrice" type="number" min="0" required></div>
+              <div class="field"><label>Catégorie</label>
+                <select id="pCategory" required><option value="">Chargement…</option></select>
+              </div>
+            </div>
+            <div class="field"><label>Description courte</label><input id="pShort" placeholder="Une phrase d’accroche"></div>
+            <div class="field"><label>Description</label><textarea id="pDesc"></textarea></div>
+            <div class="grid2">
+              <div class="field"><label>Ingrédients</label><textarea id="pIng"></textarea></div>
+              <div class="field"><label>Conservation</label><textarea id="pCons"></textarea></div>
+            </div>
+            <div class="field flavors-field">
+              <label>Saveurs</label>
+              <div id="flavorsList" class="flavors-list"></div>
+              <button type="button" class="btn btn-ghost btn-sm" id="addFlavorBtn">＋ Ajouter une saveur</button>
+            </div>
+            <div class="field">
+              <label>Photos</label>
+              <input type="file" id="pFiles" accept="image/*" multiple>
+              <button type="button" class="btn btn-ghost btn-sm media-picker-btn" id="pickProductImages">Choisir dans la galerie</button>
+              <div id="pImagesPreview" class="preview"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Stock</label><input id="pStock" type="number" value="50"></div>
+              <div class="field check">
+                <label><input type="checkbox" id="pActive" checked> Actif</label>
+                <label><input type="checkbox" id="pFeatured"> Mis en avant</label>
+                <label><input type="checkbox" id="pInStock" checked> En stock</label>
+              </div>
+            </div>
+            <p id="productError" class="err" hidden></p>
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-ghost" id="cancelProduct2">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
+      <!-- CATEGORIES -->
+      <section id="tab-categories" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Catégories</h2>
+            <p class="section-sub">Créez et organisez les catégories proposées dans la boutique.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newCategoryBtn">＋ Nouvelle catégorie</button>
+        </div>
+        <form id="categoryForm" class="panel category-form" hidden>
+          <input type="hidden" id="categoryId">
+          <div class="category-fields">
+            <div class="field"><label>Nom de la catégorie</label><input id="categoryName" required placeholder="Ex. Gâteaux"></div>
+            <div class="field"><label>Ordre d’affichage</label><input id="categoryOrder" type="number" value="0"></div>
+            <label class="category-active"><input id="categoryActive" type="checkbox" checked> Visible dans la boutique</label>
+            <button class="btn btn-primary" type="submit">Enregistrer</button>
+            <button class="btn btn-ghost" type="button" id="cancelCategory">Annuler</button>
+          </div>
+          <p class="err" id="categoryError"></p>
+        </form>
+        <div id="categoriesGrid" class="category-grid"></div>
+      </section>
+
+      <!-- GALLERY -->
+      <section id="tab-gallery" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Galerie Cloudinary</h2>
+            <p class="section-sub">Votre bibliothèque centrale d’images et vidéos, réutilisable partout sur le site.</p>
+          </div>
+          <label class="btn btn-primary gallery-upload">Téléverser des médias
+            <input type="file" id="galleryFiles" accept="image/*,video/mp4,video/webm,video/quicktime" multiple>
+          </label>
+        </div>
+        <div class="gallery-toolbar">
+          <input type="search" id="gallerySearch" placeholder="Rechercher un fichier…">
+          <select id="galleryType"><option value="">Tous les médias</option><option value="image">Images</option><option value="video">Vidéos</option></select>
+          <span id="galleryStatus" class="muted"></span>
+        </div>
+        <div id="galleryGrid" class="gallery-grid"></div>
+      </section>
+
+      <!-- MEDIA -->
+      <section id="tab-media" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Images &amp; vidéos du site</h2>
+            <p class="section-sub">Remplacez chaque visuel de la landing. Chaque emplacement accepte une image <em>ou</em> une vidéo (mp4/webm).</p>
+          </div>
+          <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">Voir le site</a>
+        </div>
+        <div id="mediaSections"></div>
+        <p id="mediaError" class="err" hidden></p>
+      </section>
+
+      <!-- COMMANDES -->
+      <section id="tab-orders" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Commandes reçues</h2>
+            <p class="section-sub">Suivez et mettez à jour le statut de chaque commande.</p>
+          </div>
+        </div>
+        <div id="ordersList" class="table-wrap"></div>
+      </section>
+
+      <!-- RESERVATIONS -->
+      <section id="tab-reservations" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Réservations</h2>
+            <p class="section-sub">Événements, entreprises et mariages.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newReservationBtn">＋ Nouvelle réservation</button>
+        </div>
+        <dialog id="reservationDialog">
+          <form id="rsvForm" class="dialog-form">
+            <div class="dialog-head">
+              <div><span class="eyebrow">Saisie manuelle</span><h3>Nouvelle réservation</h3></div>
+              <button type="button" class="icon-btn" id="closeReservation" aria-label="Fermer">✕</button>
+            </div>
+            <div class="grid2">
+            <div class="field"><label>Nom</label><input name="lastName" required></div>
+            <div class="field"><label>Prénom</label><input name="firstName" required></div>
+            <div class="field"><label>Téléphone</label><input name="phone" required></div>
+            <div class="field"><label>Ville</label>
+              <select name="city" required><option>Cotonou</option><option>Calavi</option></select>
+            </div>
+            <div class="field"><label>Type</label>
+              <select name="type"><option>événement</option><option>entreprise</option><option>mariage</option><option>autre</option></select>
+            </div>
+            <div class="field"><label>Date</label><input type="date" name="eventDate" required></div>
+            <div class="field" style="grid-column:1/-1"><label>Message</label><textarea name="message" required></textarea></div>
+            </div>
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-ghost" id="cancelReservation">Annuler</button>
+              <button class="btn btn-primary" type="submit">Enregistrer la réservation</button>
+            </div>
+          </form>
+        </dialog>
+        <div id="rsvList" class="table-wrap" style="margin-top:1.5rem"></div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<dialog id="mediaPickerDialog" class="media-picker-dialog">
+  <div class="dialog-form">
+    <div class="dialog-head">
+      <div><h3>Choisir dans la galerie</h3><p class="muted" id="mediaPickerHint"></p></div>
+      <button type="button" class="icon-btn" id="closeMediaPicker" aria-label="Fermer">✕</button>
+    </div>
+    <div id="mediaPickerGrid" class="gallery-grid picker-grid"></div>
+    <div class="dialog-actions">
+      <button type="button" class="btn btn-ghost" id="cancelMediaPicker">Annuler</button>
+      <button type="button" class="btn btn-primary" id="confirmMediaPicker">Utiliser la sélection</button>
+    </div>
+  </div>
+</dialog>
+
+<div id="scrim" class="scrim" hidden></div>
+<script src="/dashboard/js/dashboard.js"></script>
+</body>
+</html>
