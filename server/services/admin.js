@@ -11,8 +11,6 @@ async function ensureDefaultAdmin() {
         email,
         passwordHash,
         name: 'Admin Macajou',
-      },
-      $setOnInsert: {
         otpHash: '',
         otpExpiresAt: null,
         otpAttempts: 0,
