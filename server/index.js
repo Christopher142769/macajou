@@ -22,7 +22,15 @@ app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-app.use(express.static(path.join(__dirname, '../public')));
+app.use(
+  express.static(path.join(__dirname, '../public'), {
+    setHeaders(res, filePath) {
+      if (filePath.includes(`${path.sep}dashboard${path.sep}`)) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
+      }
+    },
+  })
+);
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);

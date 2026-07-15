@@ -13,6 +13,16 @@ const app = document.getElementById('app');
 const loginForm = document.getElementById('loginForm');
 const codeForm = document.getElementById('codeForm');
 
+function setLoginStep(step) {
+  const showCode = step === 'code';
+  loginForm.hidden = showCode;
+  codeForm.hidden = !showCode;
+  loginForm.style.display = showCode ? 'none' : '';
+  codeForm.style.display = showCode ? '' : 'block';
+  loginForm.setAttribute('aria-hidden', String(showCode));
+  codeForm.setAttribute('aria-hidden', String(!showCode));
+}
+
 function authHeaders(json = true) {
   const h = { Authorization: `Bearer ${token}` };
   if (json) h['Content-Type'] = 'application/json';
@@ -49,8 +59,7 @@ function showLogin() {
   localStorage.removeItem(TOKEN_KEY);
   app.hidden = true;
   loginView.hidden = false;
-  loginForm.hidden = false;
-  codeForm.hidden = true;
+  setLoginStep('credentials');
   loginChallengeToken = '';
 }
 
@@ -79,8 +88,7 @@ async function handleLogin(e) {
       throw new Error('Réponse invalide du serveur');
     }
     loginChallengeToken = data.challengeToken;
-    loginForm.hidden = true;
-    codeForm.hidden = false;
+    setLoginStep('code');
     if (data.fallbackCode) {
       document.getElementById('codeHelp').textContent =
         `⚠ Envoi email impossible. Code de secours : ${data.fallbackCode}`;
