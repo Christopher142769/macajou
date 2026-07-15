@@ -81,8 +81,13 @@ async function handleLogin(e) {
     loginChallengeToken = data.challengeToken;
     loginForm.hidden = true;
     codeForm.hidden = false;
-    document.getElementById('codeHelp').textContent =
-      `Un code à 6 chiffres a été envoyé à ${data.emailHint}.`;
+    if (data.fallbackCode) {
+      document.getElementById('codeHelp').textContent =
+        `⚠ Envoi email impossible. Code de secours : ${data.fallbackCode}`;
+    } else {
+      document.getElementById('codeHelp').textContent =
+        `Un code à 6 chiffres a été envoyé à ${data.emailHint}.`;
+    }
     document.getElementById('loginCode').value = '';
     document.getElementById('loginCode').focus();
   } catch (ex) {

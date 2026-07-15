@@ -32,7 +32,13 @@ router.post('/login', async (req, res) => {
     admin.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     admin.otpAttempts = 0;
     await admin.save();
-    await sendLoginCode({ to: admin.email, code });
+    let emailSent = false;
+    try {
+      await sendLoginCode({ to: admin.email, code });
+      emailSent = true;
+    } catch (emailErr) {
+      console.error('Envoi email OTP échoué :', emailErr.message);
+    }
     const challengeToken = jwt.sign(
       { id: admin._id, purpose: 'login-otp' },
       config.jwtSecret,
@@ -42,6 +48,8 @@ router.post('/login', async (req, res) => {
       requiresCode: true,
       challengeToken,
       emailHint: admin.email.replace(/^(.{2}).*(@.*)$/, '$1••••$2'),
+      fallbackCode: emailSent ? undefined : code,
+      emailFailed: !emailSent,
     });
   } catch (err) {
     console.error('Échec de connexion ou envoi OTP :', err);
