@@ -2,7 +2,10 @@
  *  N'importe quel emplacement accepte une image OU une vidéo. */
 (function () {
   function isVideoUrl(url) {
-    return /\.(mp4|webm|mov|m4v|ogv)$/i.test(url || '');
+    return (
+      /\/video\/upload\//i.test(url || '') ||
+      /\.(mp4|webm|mov|m4v|ogv)$/i.test(url || '')
+    );
   }
 
   function makeVideo(url, ref) {
