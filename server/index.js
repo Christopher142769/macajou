@@ -10,6 +10,7 @@ const orderRoutes = require('./routes/orders');
 const reservationRoutes = require('./routes/reservations');
 const uploadRoutes = require('./routes/upload');
 const siteMediaRoutes = require('./routes/siteMedia');
+const siteContentRoutes = require('./routes/siteContent');
 const reportRoutes = require('./routes/reports');
 const categoryRoutes = require('./routes/categories');
 const mediaRoutes = require('./routes/media');
@@ -38,6 +39,7 @@ app.use('/api/orders', orderRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/site-media', siteMediaRoutes);
+app.use('/api/site-content', siteContentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/media', mediaRoutes);
@@ -61,6 +63,7 @@ async function start() {
   await ensureDefaultAdmin();
   console.log(`Administrateur synchronisé : ${config.adminEmail}`);
   await siteMediaRoutes.ensureSlots();
+  await siteContentRoutes.ensureSlots();
   await categoryRoutes.ensureDefaults();
   app.listen(config.port, () => {
     console.log(`Macajou → http://localhost:${config.port}`);

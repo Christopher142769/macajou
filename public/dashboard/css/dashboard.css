@@ -345,6 +345,23 @@ select.status:focus{outline:none;border-color:var(--gold)}
 .media-card .row button:disabled{opacity:.4;cursor:not-allowed}
 .media-card .status{font-size:.78rem;color:var(--brun);min-height:1.05em}
 
+/* ============ SITE TEXTS ============ */
+.text-section{margin-bottom:2.2rem}
+.text-section h3{font-family:var(--display);font-weight:600;font-size:1.35rem;margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem}
+.text-section h3::after{content:"";flex:1;height:1px;background:var(--line)}
+.text-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:1rem}
+.text-card{background:var(--paper);border:1px solid var(--line-soft);border-radius:var(--radius);padding:1.1rem;box-shadow:var(--shadow-sm);display:flex;flex-direction:column;gap:.65rem}
+.text-card .label{font-size:.92rem;font-weight:500}
+.text-card .key{font-size:.68rem;color:var(--muted)}
+.text-card textarea,.text-card input{width:100%;border:1px solid var(--line);border-radius:10px;background:var(--creme);padding:.75rem .85rem;font:inherit}
+.text-card textarea{min-height:96px;resize:vertical;line-height:1.5}
+.text-card .row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:auto}
+.text-card .row button{flex:1;padding:.55rem;border-radius:9px;border:1px solid var(--line);background:var(--creme);cursor:pointer;font-size:.72rem}
+.text-card .row button[data-save-text]{background:var(--encre);color:var(--creme);border-color:var(--encre)}
+.text-card .row button[data-save-text]:hover{background:var(--rouge);border-color:var(--rouge)}
+.text-card .row button[data-reset-text]:hover{background:var(--encre);color:var(--creme)}
+.text-card .status{font-size:.78rem;color:var(--brun);min-height:1.05em}
+
 /* ============ DIALOG ============ */
 dialog{position:fixed;inset:0;margin:auto;border:none;padding:0;border-radius:var(--radius);max-width:760px;width:calc(100% - 2rem);max-height:min(90vh,850px);box-shadow:var(--shadow-lg);background:var(--paper);overflow:hidden}
 dialog::backdrop{background:rgba(28,22,17,.5);backdrop-filter:blur(3px)}

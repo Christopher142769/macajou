@@ -44,6 +44,7 @@ function showApp() {
     loadGallery(),
     loadProducts(),
     loadMedia(),
+    loadTexts(),
     loadOrders(),
     loadReservations(),
     loadAnalytics(),
@@ -1268,6 +1269,89 @@ document.getElementById('mediaSections').addEventListener('click', async (e) => 
     await loadMedia();
   } catch (ex) {
     status.textContent = ex.message;
+  }
+});
+
+async function loadTexts() {
+  const root = document.getElementById('textSections');
+  const errEl = document.getElementById('textError');
+  if (!root) return;
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  try {
+    const items = await api('/api/site-content', { headers: authHeaders(false) });
+    const bySection = {};
+    for (const item of items) {
+      (bySection[item.section] ||= []).push(item);
+    }
+    root.innerHTML = Object.entries(bySection)
+      .map(
+        ([section, list]) => `
+      <div class="text-section">
+        <h3>${escapeHtml(section)}</h3>
+        <div class="text-grid">
+          ${list
+            .map((t) => {
+              const field = t.multiline
+                ? `<textarea data-text-value="${escapeHtml(t.key)}">${escapeHtml(t.value)}</textarea>`
+                : `<input type="text" data-text-value="${escapeHtml(t.key)}" value="${escapeHtml(t.value)}">`;
+              return `<article class="text-card" data-text-key="${escapeHtml(t.key)}">
+                <div class="label">${escapeHtml(t.label)}</div>
+                <div class="key">${escapeHtml(t.key)}</div>
+                ${field}
+                <div class="row">
+                  <button type="button" data-save-text="${escapeHtml(t.key)}">Enregistrer</button>
+                  <button type="button" data-reset-text="${escapeHtml(t.key)}">Réinitialiser</button>
+                </div>
+                <div class="status" data-text-status="${escapeHtml(t.key)}"></div>
+              </article>`;
+            })
+            .join('')}
+        </div>
+      </div>`
+      )
+      .join('');
+  } catch (ex) {
+    root.innerHTML = '';
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = ex.message || 'Impossible de charger les textes';
+    }
+    throw ex;
+  }
+}
+
+document.getElementById('textSections')?.addEventListener('click', async (e) => {
+  const save = e.target.closest('[data-save-text]');
+  const reset = e.target.closest('[data-reset-text]');
+  if (!save && !reset) return;
+  const key = save ? save.dataset.saveText : reset.dataset.resetText;
+  const status = document.querySelector(`[data-text-status="${key}"]`);
+  const input = document.querySelector(`[data-text-value="${key}"]`);
+  try {
+    if (save) {
+      status.textContent = 'Enregistrement…';
+      await api(`/api/site-content/${encodeURIComponent(key)}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ value: input?.value || '' }),
+      });
+      status.textContent = 'Enregistré — visible sur le site';
+    } else {
+      if (!confirm('Revenir au texte d’origine pour cet emplacement ?')) return;
+      status.textContent = 'Réinitialisation…';
+      const item = await api(`/api/site-content/${encodeURIComponent(key)}/reset`, {
+        method: 'POST',
+        headers: authHeaders(false),
+      });
+      if (input) input.value = item.value || '';
+      status.textContent = 'Réinitialisé';
+    }
+  } catch (ex) {
+    if (status) status.textContent = ex.message;
+    else alert(ex.message);
   }
 });
 
