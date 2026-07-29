@@ -19,7 +19,7 @@ module.exports = [
   { key: 'hero.hl1', section: 'Hero', label: 'Titre — ligne 1', defaultValue: 'La saison' },
   { key: 'hero.hl2', section: 'Hero', label: 'Titre — ligne 2', defaultValue: 'des Macajoux' },
   { key: 'hero.hl3', section: 'Hero', label: 'Titre — ligne 3', defaultValue: 'est ouverte' },
-  { key: 'hero.cta', section: 'Hero', label: 'Bouton', defaultValue: 'Découvrir' },
+  { key: 'hero.cta', section: 'Hero', label: 'Bouton', defaultValue: 'Je compose mon coffret' },
   { key: 'hero.scroll', section: 'Hero', label: 'Indication défilement', defaultValue: 'Défiler' },
 
   // Collection
@@ -145,7 +145,7 @@ module.exports = [
     multiline: true,
     defaultValue: 'Nos points de vente\n& livraisons',
   },
-  { key: 'adresses.cta', section: 'Adresses', label: 'Bouton', defaultValue: 'Je découvre' },
+  { key: 'adresses.cta', section: 'Adresses', label: 'Bouton', defaultValue: 'Voir la boutique' },
 
   // Newsletter
   {

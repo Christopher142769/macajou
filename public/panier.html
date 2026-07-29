@@ -17,6 +17,7 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
 .line img{width:88px;height:88px;object-fit:cover;background:var(--creme-2)}
 .line h3{font-family:var(--display);font-size:1.15rem;font-weight:500;line-height:1.25}
 .line .meta{font-size:.85rem;opacity:.7;margin-top:.2rem}
+.line .flavors{font-size:.82rem;margin-top:.35rem;line-height:1.4}
 .line .controls{display:flex;align-items:center;gap:.5rem;margin-top:.55rem}
 .line .controls input{width:56px;text-align:center;padding:.35rem;border:1px solid var(--line);background:#fff}
 .line .controls button{border:none;background:transparent;cursor:pointer;text-decoration:underline;font-size:.8rem;opacity:.7}
@@ -29,6 +30,14 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
 .success.show{display:block}
 .success h2{font-family:var(--display);font-size:2.2rem;margin-bottom:.6rem}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.pay-options{display:flex;flex-direction:column;gap:.65rem;margin:1rem 0 1.2rem}
+.pay-option{display:flex;gap:.75rem;align-items:flex-start;padding:.9rem 1rem;border:1px solid var(--line);background:#fff;cursor:pointer}
+.pay-option:has(input:checked){border-color:var(--encre);background:#f3eee3}
+.pay-option.is-disabled{opacity:.45;pointer-events:none;filter:grayscale(.35);cursor:not-allowed;background:#f3f0ea}
+.pay-option.is-disabled strong{opacity:.85}
+.pay-option input{width:auto;margin-top:.2rem;accent-color:var(--rouge)}
+.pay-option strong{display:block;font-size:.95rem;margin-bottom:.15rem}
+.pay-option span{font-size:.82rem;opacity:.75;line-height:1.4}
 @media(max-width:900px){
   .cart-grid{grid-template-columns:1fr}
   .row2{grid-template-columns:1fr}
@@ -66,7 +75,7 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
         <p id="empty" class="empty" hidden>Votre panier est vide. <a href="/#collection" style="text-decoration:underline">Découvrir la collection</a></p>
       </div>
       <aside class="panel">
-        <h2>Livraison</h2>
+        <h2>Livraison &amp; paiement</h2>
         <form id="orderForm">
           <div class="row2">
             <div class="field">
@@ -98,6 +107,25 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
             <label for="notes">Notes (optionnel)</label>
             <textarea id="notes" name="notes" placeholder="Horaires, précisions…"></textarea>
           </div>
+
+          <span style="display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:.4rem 0 .55rem">Mode de paiement</span>
+          <div class="pay-options">
+            <label class="pay-option">
+              <input type="radio" name="paymentMethod" value="cash" checked>
+              <div>
+                <strong>Espèces à la livraison</strong>
+                <span>Payez en cash lorsque votre commande arrive.</span>
+              </div>
+            </label>
+            <label class="pay-option" id="onlinePayOption">
+              <input type="radio" name="paymentMethod" value="online">
+              <div>
+                <strong>Paiement en ligne</strong>
+                <span>Carte ou Mobile Money via FedaPay (sécurisé).</span>
+              </div>
+            </label>
+          </div>
+
           <div class="summary">
             <span>Total</span>
             <span id="total" class="fmt">0 FCFA</span>
@@ -117,6 +145,14 @@ const emptyEl = document.getElementById('empty');
 const totalEl = document.getElementById('total');
 const form = document.getElementById('orderForm');
 const formError = document.getElementById('formError');
+const params = new URLSearchParams(location.search);
+
+function itemHref(i){
+  if ((i.flavors && i.flavors.length) || String(i.category||'').toLowerCase() === 'coffrets') {
+    return `/composer.html?slug=${encodeURIComponent(i.slug||'')}`;
+  }
+  return `/produit.html?slug=${encodeURIComponent(i.slug||'')}`;
+}
 
 function render(){
   const items = Cart.read();
@@ -130,11 +166,12 @@ function render(){
   emptyEl.hidden = true;
   form.querySelector('button').disabled = false;
   linesEl.innerHTML = items.map(i => `
-    <div class="line" data-id="${i.productId}">
-      <img src="${i.image || '/uploads/placeholder-coffret12.svg'}" alt="">
+    <div class="line" data-key="${escapeHtml(i.lineKey || i.productId)}">
+      <img src="${escapeHtml(i.image || '/uploads/placeholder-coffret12.svg')}" alt="">
       <div>
-        <h3><a href="/produit.html?slug=${encodeURIComponent(i.slug||'')}">${escapeHtml(i.name)}</a></h3>
+        <h3><a href="${itemHref(i)}">${escapeHtml(i.name)}</a></h3>
         <div class="meta">${Cart.formatPrice(i.price)} · unité</div>
+        ${i.flavors?.length ? `<div class="flavors">Parfums : ${i.flavors.map(escapeHtml).join(' · ')}</div>` : ''}
         <div class="controls">
           <input type="number" min="1" value="${i.quantity}" data-qty>
           <button type="button" data-remove>Retirer</button>
@@ -148,26 +185,97 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function showSuccess(msg){
+  document.getElementById('checkout').hidden = true;
+  const success = document.getElementById('success');
+  success.classList.add('show');
+  document.getElementById('successMsg').textContent = msg;
+}
+
 linesEl.addEventListener('change', (e)=>{
   const input = e.target.closest('[data-qty]');
   if(!input) return;
-  const id = input.closest('.line').dataset.id;
-  Cart.setQty(id, Number(input.value)||1);
+  const key = input.closest('.line').dataset.key;
+  Cart.setQty(key, Number(input.value)||1);
   render();
 });
 
 linesEl.addEventListener('click', (e)=>{
   const btn = e.target.closest('[data-remove]');
   if(!btn) return;
-  Cart.remove(btn.closest('.line').dataset.id);
+  Cart.remove(btn.closest('.line').dataset.key);
   render();
 });
+
+async function checkOnlineAvailability(){
+  try{
+    const res = await fetch('/api/payments/status');
+    const data = await res.json();
+    const opt = document.getElementById('onlinePayOption');
+    const input = opt.querySelector('input');
+    const hint = opt.querySelector('span');
+    if(!data.onlineAvailable){
+      input.disabled = true;
+      input.checked = false;
+      document.querySelector('input[name="paymentMethod"][value="cash"]').checked = true;
+      opt.classList.add('is-disabled');
+      if(!data.configured){
+        hint.textContent = 'Indisponible pour le moment (configuration serveur).';
+      } else if(!data.enabled){
+        hint.textContent = 'Temporairement désactivé par Macajou — choisissez le paiement à la livraison.';
+      } else {
+        hint.textContent = 'Indisponible pour le moment.';
+      }
+    } else {
+      input.disabled = false;
+      opt.classList.remove('is-disabled');
+      hint.textContent = 'Carte ou Mobile Money via FedaPay (sécurisé).';
+    }
+  }catch{
+    const opt = document.getElementById('onlinePayOption');
+    const input = opt.querySelector('input');
+    input.disabled = true;
+    opt.classList.add('is-disabled');
+    opt.querySelector('span').textContent = 'Indisponible pour le moment.';
+  }
+}
+
+async function handlePaidReturn(){
+  if(params.get('paid') !== '1') return;
+  const orderNumber = params.get('order');
+  if(!orderNumber) return;
+
+  Cart.clear();
+  document.getElementById('checkout').hidden = true;
+  const success = document.getElementById('success');
+  success.classList.add('show');
+  const msg = document.getElementById('successMsg');
+  msg.textContent = `Paiement en cours de confirmation pour la commande ${orderNumber}…`;
+
+  try{
+    await fetch(`/api/payments/fedapay/sync/${encodeURIComponent(orderNumber)}`, { method: 'POST' });
+    const res = await fetch(`/api/orders/by-number/${encodeURIComponent(orderNumber)}`);
+    const data = await res.json();
+    if(!res.ok) throw new Error(data.error || 'Commande introuvable');
+    if(data.paymentStatus === 'paid'){
+      msg.textContent = `Paiement confirmé pour ${data.orderNumber}. Merci ! Nous préparons votre commande.`;
+    } else if(data.paymentStatus === 'failed'){
+      msg.textContent = `Le paiement de ${data.orderNumber} n’a pas abouti. Vous pouvez réessayer depuis une nouvelle commande ou choisir le paiement à la livraison.`;
+    } else {
+      msg.textContent = `Commande ${data.orderNumber} enregistrée. Si vous venez de payer, la confirmation peut prendre quelques instants.`;
+    }
+  }catch(err){
+    msg.textContent = `Commande ${orderNumber} enregistrée. ${err.message}`;
+  }
+}
 
 form.addEventListener('submit', async (e)=>{
   e.preventDefault();
   formError.hidden = true;
   const items = Cart.read();
   if(!items.length) return;
+
+  const paymentMethod = form.paymentMethod.value === 'online' ? 'online' : 'cash';
 
   const payload = {
     customer: {
@@ -178,12 +286,18 @@ form.addEventListener('submit', async (e)=>{
       address: form.address.value.trim(),
       notes: form.notes.value.trim(),
     },
-    items: items.map(i => ({ productId: i.productId, quantity: i.quantity, name: i.name })),
+    paymentMethod,
+    items: items.map(i => ({
+      productId: i.productId,
+      quantity: i.quantity,
+      name: i.name,
+      flavors: i.flavors || [],
+    })),
   };
 
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
-  btn.textContent = 'Envoi…';
+  btn.textContent = paymentMethod === 'online' ? 'Redirection paiement…' : 'Envoi…';
   try{
     const res = await fetch('/api/orders', {
       method: 'POST',
@@ -192,12 +306,18 @@ form.addEventListener('submit', async (e)=>{
     });
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Erreur');
+
+    const order = data.order || data;
+    if(paymentMethod === 'online' && data.paymentUrl){
+      Cart.clear();
+      location.href = data.paymentUrl;
+      return;
+    }
+
     Cart.clear();
-    document.getElementById('checkout').hidden = true;
-    const success = document.getElementById('success');
-    success.classList.add('show');
-    document.getElementById('successMsg').textContent =
-      `Commande ${data.orderNumber} enregistrée. Nous vous appelons au ${payload.customer.phone} pour confirmer la livraison à ${payload.customer.city}.`;
+    showSuccess(
+      `Commande ${order.orderNumber} enregistrée. Paiement à la livraison. Nous vous appelons au ${payload.customer.phone} pour confirmer à ${payload.customer.city}.`
+    );
   }catch(err){
     formError.hidden = false;
     formError.textContent = err.message;
@@ -207,6 +327,8 @@ form.addEventListener('submit', async (e)=>{
 });
 
 render();
+checkOnlineAvailability();
+handlePaidReturn();
 window.addEventListener('macajou:cart', render);
 </script>
 </body>

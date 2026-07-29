@@ -95,6 +95,10 @@ async function load(){
     const res = await fetch('/api/products/slug/' + encodeURIComponent(slug));
     if(!res.ok) throw new Error('introuvable');
     product = await res.json();
+    if (String(product.category || '').toLowerCase() === 'coffrets') {
+      location.replace('/composer.html?slug=' + encodeURIComponent(product.slug));
+      return;
+    }
     render();
   }catch{
     state.className='error';

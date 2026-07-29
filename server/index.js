@@ -7,6 +7,7 @@ const config = require('./config');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
+const paymentRoutes = require('./routes/payments');
 const reservationRoutes = require('./routes/reservations');
 const uploadRoutes = require('./routes/upload');
 const siteMediaRoutes = require('./routes/siteMedia');
@@ -36,6 +37,7 @@ app.use(
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
 app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
 app.use('/api/reservations', reservationRoutes);
 app.use('/api/upload', uploadRoutes);
 app.use('/api/site-media', siteMediaRoutes);

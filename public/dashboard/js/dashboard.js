@@ -46,6 +46,7 @@ function showApp() {
     loadMedia(),
     loadTexts(),
     loadOrders(),
+    loadPaymentSettings(),
     loadReservations(),
     loadAnalytics(),
   ]).catch((ex) => {
@@ -516,7 +517,13 @@ function renderRecentOrders(orders) {
     .map(
       (o) => `<div class="mini-row">
         <span class="who">${escapeHtml(o.customer?.lastName)} ${escapeHtml(o.customer?.firstName)}
-          <small>${escapeHtml(o.orderNumber)} · ${escapeHtml(o.customer?.city || '—')} · <span class="pill">${escapeHtml(o.status)}</span></small>
+          <small>${escapeHtml(o.orderNumber)} · ${escapeHtml(o.customer?.city || '—')} · <span class="pill">${escapeHtml(o.status)}</span>${
+            o.paymentMethod
+              ? ` · <span class="pill">${o.paymentMethod === 'online' ? 'En ligne' : 'Espèces'}${
+                  o.paymentStatus === 'paid' ? ' ✓' : o.paymentStatus === 'pending' ? '…' : ''
+                }</span>`
+              : ''
+          }</small>
         </span>
         <span class="amt">${formatPrice(o.total)}</span>
       </div>`
@@ -1058,9 +1065,25 @@ async function loadOrders() {
   const pending = orders.filter((o) => o.status === 'reçue').length;
   setBadge('badgeOrders', pending);
 
+  const payLabel = (o) => {
+    const method = o.paymentMethod === 'online' ? 'En ligne' : 'Espèces';
+    const statusMap = {
+      paid: 'payé',
+      pending: 'en attente',
+      failed: 'échoué',
+      not_required: 'à la livraison',
+    };
+    return `${method} · ${statusMap[o.paymentStatus] || o.paymentStatus || '—'}`;
+  };
+
+  const itemLabel = (i) => {
+    const flavors = i.flavors?.length ? ` (${i.flavors.join(', ')})` : '';
+    return `${escapeHtml(i.name)}${escapeHtml(flavors)} ×${i.quantity}`;
+  };
+
   document.getElementById('ordersList').innerHTML = `
     <table>
-      <thead><tr><th>N°</th><th>Client</th><th>Livraison</th><th>Articles</th><th>Total</th><th>Statut</th><th>Date</th></tr></thead>
+      <thead><tr><th>N°</th><th>Client</th><th>Livraison</th><th>Articles</th><th>Paiement</th><th>Total</th><th>Statut</th><th>Date</th></tr></thead>
       <tbody>
         ${orders
           .map(
@@ -1069,7 +1092,8 @@ async function loadOrders() {
             <td>${escapeHtml(o.orderNumber)}</td>
             <td>${escapeHtml(o.customer.lastName)} ${escapeHtml(o.customer.firstName)}<br><small>${escapeHtml(o.customer.phone)}</small></td>
             <td>${escapeHtml(o.customer.city)}<br><small>${escapeHtml(o.customer.address)}</small></td>
-            <td>${o.items.map((i) => `${escapeHtml(i.name)} ×${i.quantity}`).join('<br>')}</td>
+            <td>${o.items.map(itemLabel).join('<br>')}</td>
+            <td><small>${escapeHtml(payLabel(o))}</small></td>
             <td>${formatPrice(o.total)}</td>
             <td>
               <select class="status" data-order="${o._id}">
@@ -1079,10 +1103,77 @@ async function loadOrders() {
             <td>${formatDate(o.createdAt)}</td>
           </tr>`
           )
-          .join('') || '<tr><td colspan="7">Aucune commande</td></tr>'}
+          .join('') || '<tr><td colspan="8">Aucune commande</td></tr>'}
       </tbody>
     </table>`;
 }
+
+function applyPaymentToggleUI(data) {
+  const toggle = document.getElementById('onlinePaymentToggle');
+  const label = document.getElementById('onlinePaymentLabel');
+  const hint = document.getElementById('payToggleHint');
+  if (!toggle) return;
+
+  toggle.checked = !!data.onlinePaymentEnabled;
+  toggle.disabled = !data.fedapayConfigured && !data.onlinePaymentEnabled;
+  if (label) label.textContent = toggle.checked ? 'Activé' : 'Désactivé';
+
+  if (hint) {
+    if (!data.fedapayConfigured) {
+      hint.textContent =
+        'FedaPay n’est pas configuré sur le serveur (FEDAPAY_SECRET_KEY). Ajoutez la clé pour pouvoir activer cette option.';
+    } else if (toggle.checked) {
+      hint.textContent = 'Les clients peuvent payer en ligne ou en espèces à la livraison.';
+    } else {
+      hint.textContent =
+        'Quand c’est désactivé, l’option paiement en ligne est grisée sur la page panier du client.';
+    }
+  }
+}
+
+async function loadPaymentSettings() {
+  const errEl = document.getElementById('payToggleError');
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  try {
+    const data = await api('/api/payments/settings', { headers: authHeaders(false) });
+    applyPaymentToggleUI(data);
+  } catch (ex) {
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = ex.message || 'Impossible de charger le réglage paiement';
+    }
+  }
+}
+
+document.getElementById('onlinePaymentToggle')?.addEventListener('change', async (e) => {
+  const toggle = e.target;
+  const errEl = document.getElementById('payToggleError');
+  const wanted = !!toggle.checked;
+  if (errEl) {
+    errEl.hidden = true;
+    errEl.textContent = '';
+  }
+  toggle.disabled = true;
+  try {
+    const data = await api('/api/payments/settings/online-payment', {
+      method: 'PUT',
+      headers: authHeaders(),
+      body: JSON.stringify({ enabled: wanted }),
+    });
+    applyPaymentToggleUI(data);
+  } catch (ex) {
+    toggle.checked = !wanted;
+    if (errEl) {
+      errEl.hidden = false;
+      errEl.textContent = ex.message;
+    }
+  } finally {
+    await loadPaymentSettings();
+  }
+});
 
 document.getElementById('ordersList').addEventListener('change', async (e) => {
   const sel = e.target.closest('select[data-order]');

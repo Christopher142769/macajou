@@ -20,5 +20,5 @@ module.exports = [
   { key: 'maison.image', section: 'La Maison', label: 'Photo « Une gourmandise béninoise »', kind: 'image' },
   { key: 'coffret.image', section: 'Coffret', label: 'Photo coffret sur mesure', kind: 'image' },
   { key: 'cadeaux.image', section: 'Cadeaux / Entreprises', label: 'Photo idées cadeaux', kind: 'image' },
-  { key: 'adresses.bg', section: 'Adresses', label: 'Image de fond — points de vente', kind: 'image' },
+  { key: 'adresses.bg', section: 'Adresses', label: 'Vidéo / image de fond — points de vente', kind: 'video' },
 ];

@@ -7,6 +7,7 @@ const orderItemSchema = new mongoose.Schema(
     price: Number,
     quantity: { type: Number, min: 1, default: 1 },
     image: String,
+    flavors: { type: [String], default: [] },
   },
   { _id: false }
 );
@@ -25,6 +26,17 @@ const orderSchema = new mongoose.Schema(
     items: { type: [orderItemSchema], required: true },
     subtotal: { type: Number, required: true },
     total: { type: Number, required: true },
+    paymentMethod: {
+      type: String,
+      enum: ['online', 'cash'],
+      default: 'cash',
+    },
+    paymentStatus: {
+      type: String,
+      enum: ['pending', 'paid', 'failed', 'not_required'],
+      default: 'not_required',
+    },
+    fedapayTransactionId: { type: String, default: '' },
     status: {
       type: String,
       enum: ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'],

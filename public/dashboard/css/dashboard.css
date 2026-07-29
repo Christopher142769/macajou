@@ -345,6 +345,19 @@ select.status:focus{outline:none;border-color:var(--gold)}
 .media-card .row button:disabled{opacity:.4;cursor:not-allowed}
 .media-card .status{font-size:.78rem;color:var(--brun);min-height:1.05em}
 
+/* ============ PAYMENT TOGGLE ============ */
+.pay-toggle-card{display:flex;align-items:center;justify-content:space-between;gap:1.2rem;flex-wrap:wrap;background:var(--paper);border:1px solid var(--line-soft);border-radius:var(--radius);padding:1.1rem 1.25rem;margin-bottom:1.4rem;box-shadow:var(--shadow-sm)}
+.pay-toggle-card strong{display:block;font-size:.98rem;margin-bottom:.25rem}
+.pay-toggle-card p{margin:0;font-size:.82rem;color:var(--muted);max-width:42ch;line-height:1.45}
+.switch{display:inline-flex;align-items:center;gap:.7rem;cursor:pointer;user-select:none}
+.switch input{position:absolute;opacity:0;width:0;height:0}
+.switch-ui{width:46px;height:26px;border-radius:999px;background:#c9c0b4;position:relative;transition:background .2s;flex:none}
+.switch-ui::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+.switch input:checked + .switch-ui{background:var(--rouge)}
+.switch input:checked + .switch-ui::after{transform:translateX(20px)}
+.switch input:disabled + .switch-ui{opacity:.45}
+.switch-label{font-size:.82rem;font-weight:500;min-width:5.5rem}
+
 /* ============ SITE TEXTS ============ */
 .text-section{margin-bottom:2.2rem}
 .text-section h3{font-family:var(--display);font-weight:600;font-size:1.35rem;margin-bottom:.9rem;display:flex;align-items:center;gap:.6rem}

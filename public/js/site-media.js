@@ -35,6 +35,20 @@
     const type = el.getAttribute('data-media-type') || 'src';
 
     if (type === 'bg') {
+      if (isVideoUrl(url)) {
+        let video = el.tagName === 'VIDEO' ? el : el.querySelector('video');
+        if (!video) {
+          video = makeVideo(url, el);
+          el.textContent = '';
+          el.appendChild(video);
+        } else {
+          video.src = url;
+          video.load && video.load();
+          video.play && video.play().catch(() => {});
+        }
+        el.style.backgroundImage = '';
+        return;
+      }
       el.style.backgroundImage = `url("${url}")`;
       return;
     }

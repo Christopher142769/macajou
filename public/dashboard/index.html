@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/css/dashboard.css?v=20260721-texts">
+<link rel="stylesheet" href="/dashboard/css/dashboard.css?v=20260729-paytoggle">
 </head>
 <body>
 
@@ -417,6 +417,18 @@
             <p class="section-sub">Suivez et mettez à jour le statut de chaque commande.</p>
           </div>
         </div>
+        <div class="pay-toggle-card" id="payToggleCard">
+          <div>
+            <strong>Paiement en ligne (FedaPay)</strong>
+            <p id="payToggleHint">Quand c’est désactivé, l’option est grisée sur la page panier du client.</p>
+          </div>
+          <label class="switch" title="Activer / désactiver le paiement en ligne">
+            <input type="checkbox" id="onlinePaymentToggle">
+            <span class="switch-ui"></span>
+            <span class="switch-label" id="onlinePaymentLabel">Désactivé</span>
+          </label>
+        </div>
+        <p id="payToggleError" class="err" hidden></p>
         <div id="ordersList" class="table-wrap"></div>
       </section>
 
@@ -475,6 +487,6 @@
 </dialog>
 
 <div id="scrim" class="scrim" hidden></div>
-<script src="/dashboard/js/dashboard.js?v=20260721-texts"></script>
+<script src="/dashboard/js/dashboard.js?v=20260729-paytoggle"></script>
 </body>
 </html>

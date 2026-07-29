@@ -6,8 +6,20 @@
   let allProducts = [];
   let currentCat = 'all';
 
+  function isCoffret(product) {
+    return String(product?.category || '').toLowerCase() === 'coffrets';
+  }
+
   function productUrl(slug) {
     return '/produit.html?slug=' + encodeURIComponent(slug);
+  }
+
+  function composerUrl(slug) {
+    return '/composer.html?slug=' + encodeURIComponent(slug);
+  }
+
+  function detailUrl(product) {
+    return isCoffret(product) ? composerUrl(product.slug) : productUrl(product.slug);
   }
 
   function esc(s) {
@@ -92,17 +104,19 @@
         const slug = esc(p.slug);
         const price = esc(formatPrice(p.price));
         const short = p.shortDescription ? ` · ${esc(p.shortDescription)}` : '';
-        return `<article class="tile${feature} reveal${delay} in" data-slug="${slug}" data-id="${esc(p._id)}">
+        const href = detailUrl(p);
+        const ctaLabel = isCoffret(p) ? 'Composer mon coffret' : 'Ajouter au panier';
+        return `<article class="tile${feature} reveal${delay} in" data-slug="${slug}" data-id="${esc(p._id)}" data-coffret="${isCoffret(p) ? '1' : '0'}">
           ${tag}
           <div class="tile-visu">
-            <a class="tile-link" href="${productUrl(p.slug)}" aria-label="Voir ${name}" style="position:absolute;inset:0;z-index:1"></a>
+            <a class="tile-link" href="${esc(href)}" aria-label="Voir ${name}" style="position:absolute;inset:0;z-index:1"></a>
             <img src="${img}" alt="${name}" loading="lazy">
           </div>
-          <div class="add-bar" data-slug="${slug}" data-p="${name}" style="transform:none;z-index:3">
-            <span>Ajouter au panier</span>${CART_SVG}
+          <div class="add-bar" data-slug="${slug}" data-coffret="${isCoffret(p) ? '1' : '0'}" data-p="${name}" style="transform:none;z-index:3">
+            <span>${ctaLabel}</span>${CART_SVG}
           </div>
           <div class="tile-info">
-            <h3><a href="${productUrl(p.slug)}" style="text-decoration:none;color:inherit">${name}</a></h3>
+            <h3><a href="${esc(href)}" style="text-decoration:none;color:inherit">${name}</a></h3>
             <div class="prix">${price}${short}</div>
           </div>
         </article>`;
@@ -172,6 +186,12 @@
         e.stopPropagation();
         const slug = bar.dataset.slug;
         if (!slug) return;
+
+        if (bar.dataset.coffret === '1') {
+          location.href = composerUrl(slug);
+          return;
+        }
+
         const span = bar.querySelector('span');
         if (span) span.textContent = 'Ajout…';
         try {
@@ -197,18 +217,48 @@
     });
   }
 
+  function wireComposeCtas() {
+    document.querySelectorAll('[data-compose-coffret], a[href="#collection"][data-content="hero.cta"], a[href="#collection"][data-content="coffret.cta"], a[href="#collection"][data-content="cadeaux.cta"]').forEach((a) => {
+      a.addEventListener('click', () => {
+        sessionStorage.setItem('macajou_compose', '1');
+      });
+    });
+
+    // Marketing CTAs that should open coffret composition
+    document.querySelectorAll('a[data-content="coffret.cta"], a[data-content="cadeaux.cta"]').forEach((a) => {
+      if (a.getAttribute('href') === '/reservation.html' || a.getAttribute('href')?.includes('reservation')) {
+        a.setAttribute('href', '/#collection');
+      }
+      a.addEventListener('click', () => sessionStorage.setItem('macajou_compose', '1'));
+    });
+  }
+
+  function maybeFilterCoffrets() {
+    const params = new URLSearchParams(location.search);
+    if (sessionStorage.getItem('macajou_compose') === '1') {
+      sessionStorage.removeItem('macajou_compose');
+      setCategory('Coffrets');
+      const el = document.getElementById('collection');
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (params.get('compose') === '1') {
+      setCategory('Coffrets');
+    }
+  }
+
   async function loadProducts() {
     const zone = document.getElementById('prodZone');
     try {
       const res = await fetch('/api/products');
       if (!res.ok) throw new Error('API produits indisponible');
       allProducts = await res.json();
-      // Featured first, then newest
       allProducts.sort((a, b) => {
         if (!!b.featured - !!a.featured) return !!b.featured - !!a.featured;
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
       renderProducts();
+      maybeFilterCoffrets();
     } catch (err) {
       console.error(err);
       if (zone) {
@@ -224,6 +274,7 @@
       wireCartBadge();
       wireCategories();
       wireWhatsAppCtas();
+      wireComposeCtas();
       loadProducts();
     });
   }

@@ -20,6 +20,15 @@ async function ensureSlots() {
       { upsert: true, new: true }
     );
   }
+  // Migrate legacy hero CTA label
+  await SiteContent.findOneAndUpdate(
+    { key: 'hero.cta', value: 'Découvrir' },
+    { $set: { value: 'Je compose mon coffret' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'adresses.cta', value: 'Je découvre' },
+    { $set: { value: 'Voir la boutique' } }
+  );
 }
 
 router.get('/', async (_req, res) => {

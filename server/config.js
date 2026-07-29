@@ -8,4 +8,8 @@ module.exports = {
   adminPassword: process.env.ADMIN_PASSWORD || 'Macajou2026!',
   smtpUser: process.env.SMTP_USER || '',
   smtpAppPassword: (process.env.SMTP_APP_PASSWORD || '').replace(/\s+/g, ''),
+  appUrl: (process.env.APP_URL || `http://localhost:${process.env.PORT || 3000}`).replace(/\/$/, ''),
+  fedapaySecretKey: process.env.FEDAPAY_SECRET_KEY || '',
+  fedapayEnv: process.env.FEDAPAY_ENV || 'sandbox',
+  fedapayWebhookSecret: process.env.FEDAPAY_WEBHOOK_SECRET || '',
 };
