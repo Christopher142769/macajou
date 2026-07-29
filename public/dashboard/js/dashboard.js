@@ -93,7 +93,8 @@ async function handleLogin(e) {
     setLoginStep('code');
     if (data.fallbackCode) {
       document.getElementById('codeHelp').textContent =
-        `⚠ Envoi email impossible. Code de secours : ${data.fallbackCode}`;
+        `⚠ Email indisponible (souvent bloqué sur Render Free). Utilisez ce code : ${data.fallbackCode}`;
+      document.getElementById('loginCode').value = data.fallbackCode;
     } else {
       document.getElementById('codeHelp').textContent =
         `Un code à 6 chiffres a été envoyé à ${data.emailHint}.`;
