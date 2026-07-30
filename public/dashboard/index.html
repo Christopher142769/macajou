@@ -9,7 +9,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="/dashboard/css/dashboard.css?v=20260729-paytoggle">
+<link rel="stylesheet" href="/dashboard/css/dashboard.css?v=20260730-coffrets">
 </head>
 <body>
 
@@ -74,6 +74,14 @@
       <button type="button" data-tab="products" data-title="Galerie produits">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
         <span>Produits</span>
+      </button>
+      <button type="button" data-tab="coffrets" data-title="Coffrets">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 8h16v12H4z"/><path d="M4 8l8-4 8 4M12 4v16"/></svg>
+        <span>Coffrets</span>
+      </button>
+      <button type="button" data-tab="macajoux" data-title="Macajoux">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>
+        <span>Macajoux</span>
       </button>
       <button type="button" data-tab="categories" data-title="Catégories">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
@@ -341,6 +349,103 @@
         </dialog>
       </section>
 
+      <!-- COFFRETS -->
+      <section id="tab-coffrets" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Coffrets</h2>
+            <p class="section-sub">Formats 4, 8, 10, 16 ou 18 macajoux — nom, capacité et prix.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newCoffretBtn">＋ Nouveau coffret</button>
+        </div>
+        <div id="coffretsGrid" class="cards"></div>
+        <dialog id="coffretDialog">
+          <form method="dialog" id="coffretForm" class="dialog-form">
+            <div class="dialog-head">
+              <h3 id="coffretDialogTitle">Coffret</h3>
+              <button type="button" class="icon-btn" id="cancelCoffret" aria-label="Fermer">✕</button>
+            </div>
+            <input type="hidden" id="coffretId">
+            <div class="grid2">
+              <div class="field"><label>Nom</label><input id="cName" required placeholder="Coffret de 8"></div>
+              <div class="field"><label>Badge</label><input id="cBadge" placeholder="Signature…"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Capacité</label>
+                <select id="cCapacity" required>
+                  <option value="4">4 macajoux</option>
+                  <option value="8">8 macajoux</option>
+                  <option value="10">10 macajoux</option>
+                  <option value="16">16 macajoux</option>
+                  <option value="18">18 macajoux</option>
+                </select>
+              </div>
+              <div class="field"><label>Prix (FCFA)</label><input id="cPrice" type="number" min="0" required></div>
+            </div>
+            <div class="field"><label>Description courte</label><input id="cShort"></div>
+            <div class="field"><label>Description</label><textarea id="cDesc"></textarea></div>
+            <div class="field">
+              <label>Photo</label>
+              <input type="file" id="cFile" accept="image/*">
+              <button type="button" class="btn btn-ghost btn-sm media-picker-btn" id="pickCoffretImage">Choisir dans la galerie</button>
+              <div id="cImagePreview" class="preview"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Ordre d’affichage</label><input id="cOrder" type="number" value="0"></div>
+              <div class="field check">
+                <label><input type="checkbox" id="cActive" checked> Actif</label>
+                <label><input type="checkbox" id="cFeatured"> Mis en avant</label>
+              </div>
+            </div>
+            <p id="coffretError" class="err" hidden></p>
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-ghost" id="cancelCoffret2">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
+      <!-- MACAJOUX -->
+      <section id="tab-macajoux" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Macajoux</h2>
+            <p class="section-sub">Parfums / types proposés dans le compositeur de coffret.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newMacajouBtn">＋ Nouveau macajou</button>
+        </div>
+        <div id="macajouxGrid" class="cards"></div>
+        <dialog id="macajouDialog">
+          <form method="dialog" id="macajouForm" class="dialog-form">
+            <div class="dialog-head">
+              <h3 id="macajouDialogTitle">Macajou</h3>
+              <button type="button" class="icon-btn" id="cancelMacajou" aria-label="Fermer">✕</button>
+            </div>
+            <input type="hidden" id="macajouId">
+            <div class="field"><label>Nom</label><input id="mName" required placeholder="Chocolat, Pistache…"></div>
+            <div class="field"><label>Description</label><textarea id="mDesc"></textarea></div>
+            <div class="field">
+              <label>Photo</label>
+              <input type="file" id="mFile" accept="image/*">
+              <button type="button" class="btn btn-ghost btn-sm media-picker-btn" id="pickMacajouImage">Choisir dans la galerie</button>
+              <div id="mImagePreview" class="preview"></div>
+            </div>
+            <div class="grid2">
+              <div class="field"><label>Ordre</label><input id="mOrder" type="number" value="0"></div>
+              <div class="field check">
+                <label><input type="checkbox" id="mActive" checked> Actif</label>
+              </div>
+            </div>
+            <p id="macajouError" class="err" hidden></p>
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-ghost" id="cancelMacajou2">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
       <!-- CATEGORIES -->
       <section id="tab-categories" class="tab">
         <div class="section-head">
@@ -487,6 +592,6 @@
 </dialog>
 
 <div id="scrim" class="scrim" hidden></div>
-<script src="/dashboard/js/dashboard.js?v=20260729-otpfix"></script>
+<script src="/dashboard/js/dashboard.js?v=20260730-coffrets"></script>
 </body>
 </html>

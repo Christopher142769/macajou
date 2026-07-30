@@ -8,19 +8,50 @@ const Cart = (() => {
     );
   }
 
-  function lineKey(productId, flavors) {
-    const f = normalizeFlavors(flavors);
+  function normalizeComposition(composition) {
+    if (!Array.isArray(composition)) return [];
+    return composition
+      .map((c) => ({
+        macajouId: String(c.macajouId || c.macajou || c.id || ''),
+        name: String(c.name || '').trim(),
+        image: c.image || '',
+        quantity: Math.max(0, Number(c.quantity) || 0),
+      }))
+      .filter((c) => c.macajouId && c.quantity > 0)
+      .sort((a, b) => a.macajouId.localeCompare(b.macajouId));
+  }
+
+  function compositionKey(composition) {
+    return normalizeComposition(composition)
+      .map((c) => `${c.macajouId}x${c.quantity}`)
+      .join('|');
+  }
+
+  function lineKey(productId, flavorsOrComposition, type = 'product') {
+    if (type === 'coffret') {
+      return `coffret:${productId}::${compositionKey(flavorsOrComposition)}`;
+    }
+    const f = normalizeFlavors(flavorsOrComposition);
     return f.length ? `${productId}::${f.join('|')}` : String(productId);
   }
 
   function read() {
     try {
       const items = JSON.parse(localStorage.getItem(KEY) || '[]');
-      return items.map((i) => ({
-        ...i,
-        flavors: normalizeFlavors(i.flavors),
-        lineKey: i.lineKey || lineKey(i.productId, i.flavors),
-      }));
+      return items.map((i) => {
+        const type = i.type || (i.composition ? 'coffret' : 'product');
+        const composition = normalizeComposition(i.composition);
+        const flavors = normalizeFlavors(i.flavors);
+        return {
+          ...i,
+          type,
+          composition,
+          flavors,
+          lineKey:
+            i.lineKey ||
+            lineKey(i.productId || i.coffretId, type === 'coffret' ? composition : flavors, type),
+        };
+      });
     } catch {
       return [];
     }
@@ -36,20 +67,54 @@ const Cart = (() => {
     const items = read();
     const id = String(product._id || product.id);
     const flavors = normalizeFlavors(options.flavors);
-    const key = lineKey(id, flavors);
+    const key = lineKey(id, flavors, 'product');
     const existing = items.find((i) => i.lineKey === key);
     if (existing) existing.quantity += qty;
     else {
       items.push({
+        type: 'product',
         productId: id,
         lineKey: key,
         slug: product.slug,
         name: product.name,
         price: product.price,
-        image: product.images?.[0] || '',
+        image: product.images?.[0] || product.image || '',
         quantity: qty,
         flavors,
         category: product.category || '',
+      });
+    }
+    write(items);
+    return items;
+  }
+
+  function addCoffret(coffret, composition, qty = 1) {
+    const items = read();
+    const id = String(coffret._id || coffret.id);
+    const comp = normalizeComposition(composition);
+    const pieces = comp.reduce((n, c) => n + c.quantity, 0);
+    const capacity = Number(coffret.capacity) || 0;
+    if (!comp.length) throw new Error('Choisissez des macajoux');
+    if (pieces > capacity) throw new Error(`Maximum ${capacity} macajoux pour ce coffret`);
+    if (pieces < capacity) throw new Error(`Complétez le coffret : ${pieces}/${capacity}`);
+
+    const key = lineKey(id, comp, 'coffret');
+    const existing = items.find((i) => i.lineKey === key);
+    if (existing) existing.quantity += qty;
+    else {
+      items.push({
+        type: 'coffret',
+        productId: id,
+        coffretId: id,
+        lineKey: key,
+        slug: coffret.slug,
+        name: coffret.name,
+        price: coffret.price,
+        image: coffret.image || coffret.images?.[0] || '',
+        quantity: qty,
+        capacity,
+        composition: comp,
+        flavors: comp.map((c) => `${c.name} ×${c.quantity}`),
       });
     }
     write(items);
@@ -60,7 +125,7 @@ const Cart = (() => {
     let items = read();
     items = items
       .map((i) =>
-        i.lineKey === keyOrId || i.productId === keyOrId
+        i.lineKey === keyOrId || i.productId === keyOrId || i.coffretId === keyOrId
           ? { ...i, quantity: Math.max(0, quantity) }
           : i
       )
@@ -70,7 +135,11 @@ const Cart = (() => {
   }
 
   function remove(keyOrId) {
-    write(read().filter((i) => i.lineKey !== keyOrId && i.productId !== keyOrId));
+    write(
+      read().filter(
+        (i) => i.lineKey !== keyOrId && i.productId !== keyOrId && i.coffretId !== keyOrId
+      )
+    );
   }
 
   function clear() {
@@ -116,6 +185,7 @@ const Cart = (() => {
     read,
     write,
     add,
+    addCoffret,
     setQty,
     remove,
     clear,
@@ -126,6 +196,7 @@ const Cart = (() => {
     toast,
     lineKey,
     normalizeFlavors,
+    normalizeComposition,
   };
 })();
 

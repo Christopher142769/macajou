@@ -22,18 +22,18 @@ module.exports = [
   { key: 'hero.cta', section: 'Hero', label: 'Bouton', defaultValue: 'Je compose mon coffret' },
   { key: 'hero.scroll', section: 'Hero', label: 'Indication défilement', defaultValue: 'Défiler' },
 
-  // Collection
+  // Collection / Coffrets
   {
     key: 'collection.sur',
     section: 'Collection',
     label: 'Sur-titre',
-    defaultValue: "Fraîchement sortis de l'atelier",
+    defaultValue: 'Nos formats à composer',
   },
   {
     key: 'collection.title',
     section: 'Collection',
     label: 'Titre',
-    defaultValue: 'Collection Trésor du Bénin',
+    defaultValue: 'Coffrets Macajou',
   },
   { key: 'collection.cta', section: 'Collection', label: 'Bouton panier', defaultValue: 'Voir le panier' },
 

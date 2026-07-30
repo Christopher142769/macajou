@@ -15,6 +15,8 @@ const siteContentRoutes = require('./routes/siteContent');
 const reportRoutes = require('./routes/reports');
 const categoryRoutes = require('./routes/categories');
 const mediaRoutes = require('./routes/media');
+const coffretRoutes = require('./routes/coffrets');
+const macajouRoutes = require('./routes/macajoux');
 const { ensureDefaultAdmin } = require('./services/admin');
 
 const app = express();
@@ -45,6 +47,8 @@ app.use('/api/site-content', siteContentRoutes);
 app.use('/api/reports', reportRoutes);
 app.use('/api/categories', categoryRoutes);
 app.use('/api/media', mediaRoutes);
+app.use('/api/coffrets', coffretRoutes);
+app.use('/api/macajoux', macajouRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
@@ -67,6 +71,8 @@ async function start() {
   await siteMediaRoutes.ensureSlots();
   await siteContentRoutes.ensureSlots();
   await categoryRoutes.ensureDefaults();
+  await coffretRoutes.ensureDefaults();
+  await macajouRoutes.ensureDefaults();
   app.listen(config.port, () => {
     console.log(`Macajou → http://localhost:${config.port}`);
     console.log(`Dashboard → http://localhost:${config.port}/dashboard/`);

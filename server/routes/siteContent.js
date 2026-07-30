@@ -29,6 +29,14 @@ async function ensureSlots() {
     { key: 'adresses.cta', value: 'Je découvre' },
     { $set: { value: 'Voir la boutique' } }
   );
+  await SiteContent.findOneAndUpdate(
+    { key: 'collection.title', value: 'Collection Trésor du Bénin' },
+    { $set: { value: 'Coffrets Macajou' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'collection.sur', value: "Fraîchement sortis de l'atelier" },
+    { $set: { value: 'Nos formats à composer' } }
+  );
 }
 
 router.get('/', async (_req, res) => {

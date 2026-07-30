@@ -1,6 +1,8 @@
 const express = require('express');
 const Order = require('../models/Order');
 const Product = require('../models/Product');
+const Coffret = require('../models/Coffret');
+const Macajou = require('../models/Macajou');
 const { requireAuth } = require('../middleware/auth');
 const fedapay = require('../services/fedapay');
 const { getSettings } = require('../services/settings');
@@ -10,6 +12,41 @@ const router = express.Router();
 function normalizeFlavors(raw) {
   if (!Array.isArray(raw)) return [];
   return [...new Set(raw.map((f) => String(f || '').trim()).filter(Boolean))];
+}
+
+async function resolveComposition(raw, capacity) {
+  if (!Array.isArray(raw) || !raw.length) {
+    throw new Error('Composez votre coffret avec des macajoux');
+  }
+  const composition = [];
+  let totalPieces = 0;
+
+  for (const row of raw) {
+    const qty = Math.max(0, Number(row.quantity) || 0);
+    if (!qty) continue;
+    const macajou = await Macajou.findById(row.macajouId || row.macajou || row.id);
+    if (!macajou || !macajou.active) {
+      throw new Error(`Macajou indisponible : ${row.name || row.macajouId}`);
+    }
+    totalPieces += qty;
+    composition.push({
+      macajou: macajou._id,
+      name: macajou.name,
+      image: macajou.image || '',
+      quantity: qty,
+    });
+  }
+
+  if (!composition.length) {
+    throw new Error('Ajoutez au moins un macajou dans le coffret');
+  }
+  if (totalPieces > capacity) {
+    throw new Error(`Ce coffret ne peut contenir que ${capacity} macajoux (vous en avez ${totalPieces})`);
+  }
+  if (totalPieces < capacity) {
+    throw new Error(`Complétez le coffret : ${totalPieces}/${capacity} macajoux`);
+  }
+  return composition;
 }
 
 router.post('/', async (req, res) => {
@@ -41,17 +78,35 @@ router.post('/', async (req, res) => {
     let subtotal = 0;
 
     for (const item of items) {
+      const qty = Math.max(1, Number(item.quantity) || 1);
+      const coffretId = item.coffretId || (item.type === 'coffret' ? item.productId : null);
+
+      if (coffretId || item.type === 'coffret') {
+        const coffret = await Coffret.findById(coffretId || item.productId);
+        if (!coffret || !coffret.active) {
+          return res.status(400).json({ error: `Coffret indisponible : ${item.name || coffretId}` });
+        }
+        const composition = await resolveComposition(item.composition || [], coffret.capacity);
+        const line = {
+          coffret: coffret._id,
+          name: coffret.name,
+          price: coffret.price,
+          quantity: qty,
+          image: coffret.image || coffret.images?.[0] || '',
+          capacity: coffret.capacity,
+          composition,
+          flavors: composition.map((c) => `${c.name} ×${c.quantity}`),
+        };
+        subtotal += line.price * qty;
+        resolved.push(line);
+        continue;
+      }
+
       const product = await Product.findById(item.productId);
       if (!product || !product.active) {
         return res.status(400).json({ error: `Produit indisponible : ${item.name || item.productId}` });
       }
-      const qty = Math.max(1, Number(item.quantity) || 1);
       const flavors = normalizeFlavors(item.flavors);
-      if (product.category === 'Coffrets' && !flavors.length) {
-        return res.status(400).json({
-          error: `Choisissez au moins un parfum pour « ${product.name} »`,
-        });
-      }
       const line = {
         product: product._id,
         name: product.name,
@@ -59,6 +114,7 @@ router.post('/', async (req, res) => {
         quantity: qty,
         image: product.images?.[0] || '',
         flavors,
+        composition: [],
       };
       subtotal += line.price * qty;
       resolved.push(line);
@@ -137,7 +193,10 @@ router.get('/', requireAuth, async (req, res) => {
 
 router.get('/:id', requireAuth, async (req, res) => {
   try {
-    const order = await Order.findById(req.params.id).populate('items.product');
+    const order = await Order.findById(req.params.id)
+      .populate('items.product')
+      .populate('items.coffret')
+      .populate('items.composition.macajou');
     if (!order) return res.status(404).json({ error: 'Commande introuvable' });
     res.json(order);
   } catch (err) {

@@ -148,7 +148,7 @@ const formError = document.getElementById('formError');
 const params = new URLSearchParams(location.search);
 
 function itemHref(i){
-  if ((i.flavors && i.flavors.length) || String(i.category||'').toLowerCase() === 'coffrets') {
+  if (i.type === 'coffret' || i.composition?.length || i.capacity) {
     return `/composer.html?slug=${encodeURIComponent(i.slug||'')}`;
   }
   return `/produit.html?slug=${encodeURIComponent(i.slug||'')}`;
@@ -165,20 +165,25 @@ function render(){
   }
   emptyEl.hidden = true;
   form.querySelector('button').disabled = false;
-  linesEl.innerHTML = items.map(i => `
+  linesEl.innerHTML = items.map(i => {
+    const comp = (i.composition || []).map(c => `${escapeHtml(c.name)} ×${c.quantity}`).join(' · ');
+    const flavors = i.flavors?.length && !comp ? i.flavors.map(escapeHtml).join(' · ') : '';
+    const detail = comp || flavors;
+    return `
     <div class="line" data-key="${escapeHtml(i.lineKey || i.productId)}">
       <img src="${escapeHtml(i.image || '/uploads/placeholder-coffret12.svg')}" alt="">
       <div>
         <h3><a href="${itemHref(i)}">${escapeHtml(i.name)}</a></h3>
-        <div class="meta">${Cart.formatPrice(i.price)} · unité</div>
-        ${i.flavors?.length ? `<div class="flavors">Parfums : ${i.flavors.map(escapeHtml).join(' · ')}</div>` : ''}
+        <div class="meta">${Cart.formatPrice(i.price)} · unité${i.capacity ? ` · ${i.capacity} pièces` : ''}</div>
+        ${detail ? `<div class="flavors">${detail}</div>` : ''}
         <div class="controls">
           <input type="number" min="1" value="${i.quantity}" data-qty>
           <button type="button" data-remove>Retirer</button>
         </div>
       </div>
       <div class="price fmt">${Cart.formatPrice(i.price * i.quantity)}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 function escapeHtml(s){
@@ -289,9 +294,12 @@ form.addEventListener('submit', async (e)=>{
     paymentMethod,
     items: items.map(i => ({
       productId: i.productId,
+      coffretId: i.coffretId || (i.type === 'coffret' ? i.productId : undefined),
+      type: i.type || 'product',
       quantity: i.quantity,
       name: i.name,
       flavors: i.flavors || [],
+      composition: i.composition || [],
     })),
   };
 

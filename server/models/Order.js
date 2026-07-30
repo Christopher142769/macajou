@@ -1,12 +1,26 @@
 const mongoose = require('mongoose');
 
+const compositionItemSchema = new mongoose.Schema(
+  {
+    macajou: { type: mongoose.Schema.Types.ObjectId, ref: 'Macajou' },
+    name: String,
+    image: String,
+    quantity: { type: Number, min: 1, default: 1 },
+  },
+  { _id: false }
+);
+
 const orderItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    coffret: { type: mongoose.Schema.Types.ObjectId, ref: 'Coffret' },
     name: String,
     price: Number,
     quantity: { type: Number, min: 1, default: 1 },
     image: String,
+    capacity: { type: Number, default: 0 },
+    composition: { type: [compositionItemSchema], default: [] },
+    /** @deprecated legacy flavor names */
     flavors: { type: [String], default: [] },
   },
   { _id: false }

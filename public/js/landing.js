@@ -1,26 +1,6 @@
-/** Landing page: collection dynamique depuis l’API + panier */
+/** Landing — section Coffrets (cartes attrayantes → composition) */
 (function () {
-  const CART_SVG =
-    '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M5 8h14l-1.2 12H6.2L5 8z"/><path d="M9 8V6a3 3 0 016 0v2"/></svg>';
-
-  let allProducts = [];
-  let currentCat = 'all';
-
-  function isCoffret(product) {
-    return String(product?.category || '').toLowerCase() === 'coffrets';
-  }
-
-  function productUrl(slug) {
-    return '/produit.html?slug=' + encodeURIComponent(slug);
-  }
-
-  function composerUrl(slug) {
-    return '/composer.html?slug=' + encodeURIComponent(slug);
-  }
-
-  function detailUrl(product) {
-    return isCoffret(product) ? composerUrl(product.slug) : productUrl(product.slug);
-  }
+  let coffrets = [];
 
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, (c) =>
@@ -31,6 +11,14 @@
   function formatPrice(n) {
     if (window.Cart && window.Cart.formatPrice) return window.Cart.formatPrice(n);
     return Number(n).toLocaleString('fr-FR') + ' FCFA';
+  }
+
+  function composerUrl(slug) {
+    return '/composer.html?slug=' + encodeURIComponent(slug);
+  }
+
+  function imageFor(c) {
+    return c.image || (c.images && c.images[0]) || '/uploads/placeholder-coffret12.svg';
   }
 
   function ensureCartScript(cb) {
@@ -62,226 +50,88 @@
     window.Cart && window.Cart.updateBadges();
   }
 
-  function imageFor(product) {
-    const img = product.images && product.images[0];
-    return img || '/uploads/placeholder-coffret12.svg';
-  }
-
-  function filteredProducts() {
-    if (currentCat === 'all') return allProducts;
-    return allProducts.filter((p) => p.category === currentCat);
-  }
-
-  function renderProducts() {
+  function renderCoffrets() {
     const zone = document.getElementById('prodZone');
     if (!zone) return;
 
-    const products = filteredProducts();
-
-    if (!allProducts.length) {
+    if (!coffrets.length) {
       zone.innerHTML =
-        '<p class="prod-empty">Aucun produit pour le moment.<br>La collection apparaîtra ici dès qu’elle sera publiée depuis le dashboard.</p>';
+        '<p class="prod-empty">Les coffrets arriveront bientôt.<br>Revenez découvrir nos formats à composer.</p>';
       return;
     }
 
-    if (!products.length) {
-      zone.innerHTML =
-        '<p class="prod-empty">Aucun produit dans cette catégorie. <a href="#collection" data-cat-reset>Voir tout</a></p>';
-      zone.querySelector('[data-cat-reset]')?.addEventListener('click', (e) => {
-        e.preventDefault();
-        setCategory('all');
-      });
-      return;
-    }
-
-    zone.innerHTML = products
-      .map((p, i) => {
-        const feature = i === 0 ? ' feature' : '';
-        const delay = i === 0 ? '' : i % 2 === 0 ? ' d2' : ' d1';
-        const tag = p.badge ? `<span class="tag">${esc(p.badge)}</span>` : '';
-        const img = esc(imageFor(p));
-        const name = esc(p.name);
-        const slug = esc(p.slug);
-        const price = esc(formatPrice(p.price));
-        const short = p.shortDescription ? ` · ${esc(p.shortDescription)}` : '';
-        const href = detailUrl(p);
-        const ctaLabel = isCoffret(p) ? 'Composer mon coffret' : 'Ajouter au panier';
-        return `<article class="tile${feature} reveal${delay} in" data-slug="${slug}" data-id="${esc(p._id)}" data-coffret="${isCoffret(p) ? '1' : '0'}">
-          ${tag}
-          <div class="tile-visu">
-            <a class="tile-link" href="${esc(href)}" aria-label="Voir ${name}" style="position:absolute;inset:0;z-index:1"></a>
-            <img src="${img}" alt="${name}" loading="lazy">
+    zone.className = 'coffret-grid';
+    zone.innerHTML = coffrets
+      .map((c, i) => {
+        const href = composerUrl(c.slug);
+        const delay = i % 3 === 0 ? '' : i % 3 === 1 ? ' d1' : ' d2';
+        return `<a class="coffret-card reveal${delay} in" href="${esc(href)}">
+          <div class="coffret-card-media">
+            ${c.badge ? `<span class="coffret-badge">${esc(c.badge)}</span>` : ''}
+            <img src="${esc(imageFor(c))}" alt="${esc(c.name)}" loading="lazy">
+            <div class="coffret-card-glow" aria-hidden="true"></div>
           </div>
-          <div class="add-bar" data-slug="${slug}" data-coffret="${isCoffret(p) ? '1' : '0'}" data-p="${name}" style="transform:none;z-index:3">
-            <span>${ctaLabel}</span>${CART_SVG}
+          <div class="coffret-card-body">
+            <h3>${esc(c.name)}</h3>
+            <p class="coffret-count"><span>${esc(c.capacity)}</span> macajoux</p>
+            ${c.shortDescription ? `<p class="coffret-desc">${esc(c.shortDescription)}</p>` : ''}
+            <div class="coffret-foot">
+              <strong class="coffret-price">${esc(formatPrice(c.price))}</strong>
+              <span class="coffret-cta">Composer</span>
+            </div>
           </div>
-          <div class="tile-info">
-            <h3><a href="${esc(href)}" style="text-decoration:none;color:inherit">${name}</a></h3>
-            <div class="prix">${price}${short}</div>
-          </div>
-        </article>`;
+        </a>`;
       })
       .join('');
-
-    wireAddBars();
-  }
-
-  function setCategory(cat) {
-    currentCat = cat || 'all';
-    document.querySelectorAll('#catNav a').forEach((a) => {
-      a.classList.toggle('active', a.dataset.cat === currentCat);
-    });
-    renderProducts();
-  }
-
-  function wireCategories() {
-    const nav = document.getElementById('catNav');
-    if (!nav) return;
-    nav.addEventListener('click', (e) => {
-      const a = e.target.closest('a[data-cat]');
-      if (!a) return;
-      e.preventDefault();
-      setCategory(a.dataset.cat);
-    });
-  }
-
-  async function loadCategoriesNav() {
-    const nav = document.getElementById('catNav');
-    if (!nav) return;
-    try {
-      const res = await fetch('/api/categories');
-      if (!res.ok) throw new Error('API catégories indisponible');
-      const items = await res.json();
-      nav.innerHTML = [
-        ...items.map(
-          (category) =>
-            `<a href="#collection" data-cat="${esc(category.name)}">${esc(category.name)}</a><span class="dot">·</span>`
-        ),
-        '<a class="active" href="#collection" data-cat="all">Voir tout</a>',
-      ].join('');
-    } catch (err) {
-      console.error(err);
-    }
-  }
-
-  async function addToCartBySlug(slug) {
-    const local = allProducts.find((p) => p.slug === slug);
-    let product = local;
-    if (!product) {
-      const res = await fetch('/api/products/slug/' + encodeURIComponent(slug));
-      if (!res.ok) throw new Error('Produit introuvable');
-      product = await res.json();
-    }
-    if (!window.Cart) throw new Error('Panier indisponible');
-    window.Cart.add(product, 1);
-    window.Cart.updateBadges();
-    window.Cart.toast('Ajouté au panier');
-    return product;
-  }
-
-  function wireAddBars() {
-    document.querySelectorAll('#prodZone .add-bar').forEach((bar) => {
-      bar.addEventListener('click', async (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const slug = bar.dataset.slug;
-        if (!slug) return;
-
-        if (bar.dataset.coffret === '1') {
-          location.href = composerUrl(slug);
-          return;
-        }
-
-        const span = bar.querySelector('span');
-        if (span) span.textContent = 'Ajout…';
-        try {
-          await addToCartBySlug(slug);
-          if (span) span.textContent = 'Ajouté ✓';
-          setTimeout(() => {
-            location.href = productUrl(slug);
-          }, 350);
-        } catch (err) {
-          console.error(err);
-          location.href = productUrl(slug);
-        }
-      });
-    });
-  }
-
-  function wireWhatsAppCtas() {
-    document.querySelectorAll('a[href*="wa.me"]').forEach((a) => {
-      a.href = '/panier.html';
-      a.removeAttribute('target');
-      a.removeAttribute('rel');
-      if (/whatsapp/i.test(a.textContent)) a.textContent = 'Voir mon panier';
-    });
   }
 
   function wireComposeCtas() {
-    document.querySelectorAll('[data-compose-coffret], a[href="#collection"][data-content="hero.cta"], a[href="#collection"][data-content="coffret.cta"], a[href="#collection"][data-content="cadeaux.cta"]').forEach((a) => {
+    document.querySelectorAll('[data-compose-coffret]').forEach((a) => {
       a.addEventListener('click', () => {
         sessionStorage.setItem('macajou_compose', '1');
       });
     });
-
-    // Marketing CTAs that should open coffret composition
     document.querySelectorAll('a[data-content="coffret.cta"], a[data-content="cadeaux.cta"]').forEach((a) => {
-      if (a.getAttribute('href') === '/reservation.html' || a.getAttribute('href')?.includes('reservation')) {
+      if (a.getAttribute('href')?.includes('reservation')) {
         a.setAttribute('href', '/#collection');
       }
       a.addEventListener('click', () => sessionStorage.setItem('macajou_compose', '1'));
     });
   }
 
-  function maybeFilterCoffrets() {
-    const params = new URLSearchParams(location.search);
+  function maybeScrollToCoffrets() {
     if (sessionStorage.getItem('macajou_compose') === '1') {
       sessionStorage.removeItem('macajou_compose');
-      setCategory('Coffrets');
       const el = document.getElementById('collection');
       if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-    if (params.get('compose') === '1') {
-      setCategory('Coffrets');
     }
   }
 
-  async function loadProducts() {
+  async function loadCoffrets() {
     const zone = document.getElementById('prodZone');
     try {
-      const res = await fetch('/api/products');
-      if (!res.ok) throw new Error('API produits indisponible');
-      allProducts = await res.json();
-      allProducts.sort((a, b) => {
-        if (!!b.featured - !!a.featured) return !!b.featured - !!a.featured;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-      renderProducts();
-      maybeFilterCoffrets();
+      const res = await fetch('/api/coffrets');
+      if (!res.ok) throw new Error('API coffrets indisponible');
+      coffrets = await res.json();
+      renderCoffrets();
+      maybeScrollToCoffrets();
     } catch (err) {
       console.error(err);
       if (zone) {
         zone.innerHTML =
-          '<p class="prod-empty">Impossible de charger la collection. Vérifiez que le serveur tourne.</p>';
+          '<p class="prod-empty">Impossible de charger les coffrets. Vérifiez que le serveur tourne.</p>';
       }
     }
   }
 
-  async function init() {
-    await loadCategoriesNav();
+  function init() {
     ensureCartScript(() => {
       wireCartBadge();
-      wireCategories();
-      wireWhatsAppCtas();
       wireComposeCtas();
-      loadProducts();
+      loadCoffrets();
     });
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();

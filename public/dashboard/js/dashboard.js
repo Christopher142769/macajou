@@ -1,6 +1,8 @@
 const TOKEN_KEY = 'macajou_admin_token';
 let token = localStorage.getItem(TOKEN_KEY) || '';
 let editingImages = [];
+let editingCoffretImage = '';
+let editingMacajouImage = '';
 let currentReport = null;
 let categories = [];
 let galleryAssets = [];
@@ -43,6 +45,8 @@ function showApp() {
     loadCategories(),
     loadGallery(),
     loadProducts(),
+    loadCoffrets(),
+    loadMacajoux(),
     loadMedia(),
     loadTexts(),
     loadOrders(),
@@ -798,12 +802,14 @@ document.getElementById('galleryGrid')?.addEventListener('click', async (e) => {
 function openMediaPicker(mode) {
   mediaPickerMode = mode;
   mediaPickerSelection = new Set();
-  const onlyImages = mode === 'product';
+  const onlyImages = mode === 'product' || mode === 'coffret' || mode === 'macajou';
   const assets = onlyImages
     ? galleryAssets.filter((asset) => asset.resourceType === 'image')
     : galleryAssets;
   document.getElementById('mediaPickerHint').textContent = onlyImages
-    ? 'Sélectionnez une ou plusieurs images pour ce produit.'
+    ? mode === 'product'
+      ? 'Sélectionnez une ou plusieurs images pour ce produit.'
+      : 'Sélectionnez une image.'
     : 'Sélectionnez une image ou une vidéo.';
   document.getElementById('mediaPickerGrid').innerHTML =
     assets.map((asset) => galleryCard(asset, true)).join('') ||
@@ -812,6 +818,8 @@ function openMediaPicker(mode) {
 }
 
 document.getElementById('pickProductImages')?.addEventListener('click', () => openMediaPicker('product'));
+document.getElementById('pickCoffretImage')?.addEventListener('click', () => openMediaPicker('coffret'));
+document.getElementById('pickMacajouImage')?.addEventListener('click', () => openMediaPicker('macajou'));
 document.getElementById('mediaPickerGrid')?.addEventListener('click', (e) => {
   const card = e.target.closest('[data-asset-id]');
   if (!card) return;
@@ -837,6 +845,12 @@ document.getElementById('confirmMediaPicker')?.addEventListener('click', async (
   if (mediaPickerMode === 'product') {
     editingImages = [...new Set([...editingImages, ...selected.map((asset) => asset.url)])];
     renderPreview();
+  } else if (mediaPickerMode === 'coffret') {
+    editingCoffretImage = selected[0].url;
+    renderCoffretPreview();
+  } else if (mediaPickerMode === 'macajou') {
+    editingMacajouImage = selected[0].url;
+    renderMacajouPreview();
   } else if (mediaPickerMode?.startsWith('site:')) {
     const key = mediaPickerMode.slice(5);
     const asset = selected[0];
@@ -1059,6 +1073,234 @@ productForm.addEventListener('submit', async (e) => {
   }
 });
 
+/* ============ COFFRETS ============ */
+const coffretDialog = document.getElementById('coffretDialog');
+const coffretForm = document.getElementById('coffretForm');
+
+function renderCoffretPreview() {
+  const box = document.getElementById('cImagePreview');
+  if (!box) return;
+  box.innerHTML = editingCoffretImage
+    ? `<div class="thumb"><img src="${escapeHtml(editingCoffretImage)}" alt=""><button type="button" data-clear-coffret-img>✕</button></div>`
+    : '';
+}
+
+function openCoffretDialog(c = null) {
+  document.getElementById('coffretError').hidden = true;
+  document.getElementById('coffretDialogTitle').textContent = c ? 'Modifier le coffret' : 'Nouveau coffret';
+  document.getElementById('coffretId').value = c?._id || '';
+  document.getElementById('cName').value = c?.name || '';
+  document.getElementById('cBadge').value = c?.badge || '';
+  document.getElementById('cCapacity').value = String(c?.capacity || 8);
+  document.getElementById('cPrice').value = c?.price ?? '';
+  document.getElementById('cShort').value = c?.shortDescription || '';
+  document.getElementById('cDesc').value = c?.description || '';
+  document.getElementById('cOrder').value = c?.order ?? 0;
+  document.getElementById('cActive').checked = c?.active !== false;
+  document.getElementById('cFeatured').checked = !!c?.featured;
+  document.getElementById('cFile').value = '';
+  editingCoffretImage = c?.image || c?.images?.[0] || '';
+  renderCoffretPreview();
+  coffretDialog.showModal();
+}
+
+async function loadCoffrets() {
+  const items = await api('/api/coffrets/admin/all', { headers: authHeaders(false) });
+  const grid = document.getElementById('coffretsGrid');
+  if (!grid) return;
+  grid.innerHTML =
+    items
+      .map(
+        (c) => `<article class="card">
+      ${mediaThumb(c.image || c.images?.[0])}
+      <div class="body">
+        <h3>${escapeHtml(c.name)}</h3>
+        <div class="meta">${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}</div>
+        <div class="actions">
+          <button type="button" data-edit-coffret="${c._id}">Modifier</button>
+          <button type="button" data-del-coffret="${c._id}">Supprimer</button>
+          <a href="/composer.html?slug=${encodeURIComponent(c.slug)}" target="_blank">Composer</a>
+        </div>
+      </div>
+    </article>`
+      )
+      .join('') || '<p class="empty-state">Aucun coffret — créez les formats 4, 8, 10, 16, 18.</p>';
+}
+
+document.getElementById('newCoffretBtn')?.addEventListener('click', () => openCoffretDialog());
+document.getElementById('cancelCoffret')?.addEventListener('click', () => coffretDialog.close());
+document.getElementById('cancelCoffret2')?.addEventListener('click', () => coffretDialog.close());
+document.getElementById('cImagePreview')?.addEventListener('click', (e) => {
+  if (e.target.closest('[data-clear-coffret-img]')) {
+    editingCoffretImage = '';
+    renderCoffretPreview();
+  }
+});
+
+document.getElementById('coffretsGrid')?.addEventListener('click', async (e) => {
+  const edit = e.target.closest('[data-edit-coffret]');
+  const del = e.target.closest('[data-del-coffret]');
+  if (edit) {
+    const items = await api('/api/coffrets/admin/all', { headers: authHeaders(false) });
+    const c = items.find((x) => x._id === edit.dataset.editCoffret);
+    if (c) openCoffretDialog(c);
+  }
+  if (del && confirm('Supprimer ce coffret ?')) {
+    await api(`/api/coffrets/${del.dataset.delCoffret}`, { method: 'DELETE', headers: authHeaders(false) });
+    loadCoffrets();
+  }
+});
+
+coffretForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('coffretError');
+  err.hidden = true;
+  try {
+    const file = document.getElementById('cFile').files?.[0];
+    if (file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await fetch('/api/upload/one', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const upData = await up.json();
+      if (!up.ok) throw new Error(upData.error || 'Upload impossible');
+      editingCoffretImage = upData.url;
+    }
+    const body = {
+      name: document.getElementById('cName').value.trim(),
+      badge: document.getElementById('cBadge').value.trim(),
+      capacity: Number(document.getElementById('cCapacity').value),
+      price: Number(document.getElementById('cPrice').value),
+      shortDescription: document.getElementById('cShort').value.trim(),
+      description: document.getElementById('cDesc').value.trim(),
+      image: editingCoffretImage,
+      images: editingCoffretImage ? [editingCoffretImage] : [],
+      order: Number(document.getElementById('cOrder').value) || 0,
+      active: document.getElementById('cActive').checked,
+      featured: document.getElementById('cFeatured').checked,
+    };
+    const id = document.getElementById('coffretId').value;
+    if (id) await api(`/api/coffrets/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    else await api('/api/coffrets', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    coffretDialog.close();
+    loadCoffrets();
+  } catch (ex) {
+    err.hidden = false;
+    err.textContent = ex.message;
+  }
+});
+
+/* ============ MACAJOUX ============ */
+const macajouDialog = document.getElementById('macajouDialog');
+const macajouForm = document.getElementById('macajouForm');
+
+function renderMacajouPreview() {
+  const box = document.getElementById('mImagePreview');
+  if (!box) return;
+  box.innerHTML = editingMacajouImage
+    ? `<div class="thumb"><img src="${escapeHtml(editingMacajouImage)}" alt=""><button type="button" data-clear-mac-img>✕</button></div>`
+    : '';
+}
+
+function openMacajouDialog(m = null) {
+  document.getElementById('macajouError').hidden = true;
+  document.getElementById('macajouDialogTitle').textContent = m ? 'Modifier le macajou' : 'Nouveau macajou';
+  document.getElementById('macajouId').value = m?._id || '';
+  document.getElementById('mName').value = m?.name || '';
+  document.getElementById('mDesc').value = m?.description || '';
+  document.getElementById('mOrder').value = m?.order ?? 0;
+  document.getElementById('mActive').checked = m?.active !== false;
+  document.getElementById('mFile').value = '';
+  editingMacajouImage = m?.image || '';
+  renderMacajouPreview();
+  macajouDialog.showModal();
+}
+
+async function loadMacajoux() {
+  const items = await api('/api/macajoux/admin/all', { headers: authHeaders(false) });
+  const grid = document.getElementById('macajouxGrid');
+  if (!grid) return;
+  grid.innerHTML =
+    items
+      .map(
+        (m) => `<article class="card">
+      ${mediaThumb(m.image)}
+      <div class="body">
+        <h3>${escapeHtml(m.name)}</h3>
+        <div class="meta">${escapeHtml(m.description || 'Macajou')} · ${m.active ? 'Actif' : 'Masqué'}</div>
+        <div class="actions">
+          <button type="button" data-edit-mac="${m._id}">Modifier</button>
+          <button type="button" data-del-mac="${m._id}">Supprimer</button>
+        </div>
+      </div>
+    </article>`
+      )
+      .join('') || '<p class="empty-state">Aucun macajou — ajoutez Chocolat, Pistache, etc.</p>';
+}
+
+document.getElementById('newMacajouBtn')?.addEventListener('click', () => openMacajouDialog());
+document.getElementById('cancelMacajou')?.addEventListener('click', () => macajouDialog.close());
+document.getElementById('cancelMacajou2')?.addEventListener('click', () => macajouDialog.close());
+document.getElementById('mImagePreview')?.addEventListener('click', (e) => {
+  if (e.target.closest('[data-clear-mac-img]')) {
+    editingMacajouImage = '';
+    renderMacajouPreview();
+  }
+});
+
+document.getElementById('macajouxGrid')?.addEventListener('click', async (e) => {
+  const edit = e.target.closest('[data-edit-mac]');
+  const del = e.target.closest('[data-del-mac]');
+  if (edit) {
+    const items = await api('/api/macajoux/admin/all', { headers: authHeaders(false) });
+    const m = items.find((x) => x._id === edit.dataset.editMac);
+    if (m) openMacajouDialog(m);
+  }
+  if (del && confirm('Supprimer ce macajou ?')) {
+    await api(`/api/macajoux/${del.dataset.delMac}`, { method: 'DELETE', headers: authHeaders(false) });
+    loadMacajoux();
+  }
+});
+
+macajouForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('macajouError');
+  err.hidden = true;
+  try {
+    const file = document.getElementById('mFile').files?.[0];
+    if (file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await fetch('/api/upload/one', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const upData = await up.json();
+      if (!up.ok) throw new Error(upData.error || 'Upload impossible');
+      editingMacajouImage = upData.url;
+    }
+    const body = {
+      name: document.getElementById('mName').value.trim(),
+      description: document.getElementById('mDesc').value.trim(),
+      image: editingMacajouImage,
+      order: Number(document.getElementById('mOrder').value) || 0,
+      active: document.getElementById('mActive').checked,
+    };
+    const id = document.getElementById('macajouId').value;
+    if (id) await api(`/api/macajoux/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    else await api('/api/macajoux', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    macajouDialog.close();
+    loadMacajoux();
+  } catch (ex) {
+    err.hidden = false;
+    err.textContent = ex.message;
+  }
+});
+
 async function loadOrders() {
   const orders = await api('/api/orders', { headers: authHeaders(false) });
   const statuses = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'];
@@ -1078,8 +1320,12 @@ async function loadOrders() {
   };
 
   const itemLabel = (i) => {
-    const flavors = i.flavors?.length ? ` (${i.flavors.join(', ')})` : '';
-    return `${escapeHtml(i.name)}${escapeHtml(flavors)} ×${i.quantity}`;
+    const comp = i.composition?.length
+      ? ` (${i.composition.map((c) => `${c.name}×${c.quantity}`).join(', ')})`
+      : i.flavors?.length
+        ? ` (${i.flavors.join(', ')})`
+        : '';
+    return `${escapeHtml(i.name)}${escapeHtml(comp)} ×${i.quantity}`;
   };
 
   document.getElementById('ordersList').innerHTML = `
