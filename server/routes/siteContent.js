@@ -27,7 +27,11 @@ async function ensureSlots() {
   );
   await SiteContent.findOneAndUpdate(
     { key: 'adresses.cta', value: 'Je découvre' },
-    { $set: { value: 'Voir la boutique' } }
+    { $set: { value: 'Localiser la boutique' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'adresses.cta', value: 'Voir la boutique' },
+    { $set: { value: 'Localiser la boutique' } }
   );
   await SiteContent.findOneAndUpdate(
     { key: 'collection.title', value: 'Collection Trésor du Bénin' },

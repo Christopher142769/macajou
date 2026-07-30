@@ -145,7 +145,7 @@ module.exports = [
     multiline: true,
     defaultValue: 'Nos points de vente\n& livraisons',
   },
-  { key: 'adresses.cta', section: 'Adresses', label: 'Bouton', defaultValue: 'Voir la boutique' },
+  { key: 'adresses.cta', section: 'Adresses', label: 'Bouton', defaultValue: 'Localiser la boutique' },
 
   // Newsletter
   {
