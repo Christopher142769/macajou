@@ -6,7 +6,7 @@ module.exports = [
     section: 'Annonce',
     label: 'Bandeau d’annonce',
     multiline: true,
-    defaultValue: '🥜 UNE PAUSE GOURMANDE MACAJOU, LIVRÉE EN 24H À COTONOU & CALAVI 🇧🇯',
+    defaultValue: 'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
   },
 
   // Hero
@@ -19,7 +19,7 @@ module.exports = [
   { key: 'hero.hl1', section: 'Hero', label: 'Titre — ligne 1', defaultValue: 'La saison' },
   { key: 'hero.hl2', section: 'Hero', label: 'Titre — ligne 2', defaultValue: 'des Macajoux' },
   { key: 'hero.hl3', section: 'Hero', label: 'Titre — ligne 3', defaultValue: 'est ouverte' },
-  { key: 'hero.cta', section: 'Hero', label: 'Bouton', defaultValue: 'Je compose mon coffret' },
+  { key: 'hero.cta', section: 'Hero', label: 'Bouton', defaultValue: 'Je choisis mon coffret' },
   { key: 'hero.scroll', section: 'Hero', label: 'Indication défilement', defaultValue: 'Défiler' },
 
   // Collection / Coffrets
@@ -109,7 +109,7 @@ module.exports = [
     multiline: true,
     defaultValue: 'Composez votre\ncoffret',
   },
-  { key: 'coffret.cta', section: 'Coffret', label: 'Bouton', defaultValue: 'Je compose' },
+  { key: 'coffret.cta', section: 'Coffret', label: 'Bouton', defaultValue: 'Je choisis' },
 
   // Cadeaux
   {

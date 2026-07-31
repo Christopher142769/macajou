@@ -20,7 +20,17 @@
     }
 
     if (mode === 'html-br' || text.includes('\n')) {
-      el.innerHTML = escapeHtml(text).replace(/\n/g, '<br>');
+      const parts = escapeHtml(text).split('\n');
+      const key = el.getAttribute('data-content') || '';
+      if (key === 'annonce.text' && parts.length > 1) {
+        el.innerHTML =
+          parts[0] +
+          '<br><em class="annonce-note">' +
+          parts.slice(1).join(' ') +
+          '</em>';
+        return;
+      }
+      el.innerHTML = parts.join('<br>');
       return;
     }
 

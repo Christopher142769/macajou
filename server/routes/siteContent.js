@@ -23,7 +23,38 @@ async function ensureSlots() {
   // Migrate legacy hero CTA label
   await SiteContent.findOneAndUpdate(
     { key: 'hero.cta', value: 'Découvrir' },
-    { $set: { value: 'Je compose mon coffret' } }
+    { $set: { value: 'Je choisis mon coffret' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'hero.cta', value: 'Je compose mon coffret' },
+    { $set: { value: 'Je choisis mon coffret' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'coffret.cta', value: 'Je compose' },
+    { $set: { value: 'Je choisis' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    {
+      key: 'annonce.text',
+      value: '🥜 UNE PAUSE GOURMANDE MACAJOU, LIVRÉE EN 24H À COTONOU & CALAVI 🇧🇯',
+    },
+    {
+      $set: {
+        value: 'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
+      },
+    }
+  );
+  await SiteContent.findOneAndUpdate(
+    {
+      key: 'annonce.text',
+      value:
+        'Une pause gourmande Macajou livrée en 2h* (la majorité commande pour une consommation immédiate)\n*Sous réserve de…',
+    },
+    {
+      $set: {
+        value: 'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
+      },
+    }
   );
   await SiteContent.findOneAndUpdate(
     { key: 'adresses.cta', value: 'Je découvre' },

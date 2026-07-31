@@ -77,7 +77,7 @@
             ${c.shortDescription ? `<p class="coffret-desc">${esc(c.shortDescription)}</p>` : ''}
             <div class="coffret-foot">
               <strong class="coffret-price">${esc(formatPrice(c.price))}</strong>
-              <span class="coffret-cta">Composer</span>
+              <span class="coffret-cta">Choisir</span>
             </div>
           </div>
         </a>`;
