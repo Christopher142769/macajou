@@ -17,6 +17,7 @@ const categoryRoutes = require('./routes/categories');
 const mediaRoutes = require('./routes/media');
 const coffretRoutes = require('./routes/coffrets');
 const macajouRoutes = require('./routes/macajoux');
+const clubRoutes = require('./routes/club');
 const { ensureDefaultAdmin } = require('./services/admin');
 
 const app = express();
@@ -49,11 +50,16 @@ app.use('/api/categories', categoryRoutes);
 app.use('/api/media', mediaRoutes);
 app.use('/api/coffrets', coffretRoutes);
 app.use('/api/macajoux', macajouRoutes);
+app.use('/api/club', clubRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 
 app.get('/dashboard', (_req, res) => {
   res.redirect('/dashboard/');
+});
+
+app.get(['/club', '/club-macajou'], (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/club.html'));
 });
 
 app.get('*', (req, res, next) => {
@@ -73,6 +79,7 @@ async function start() {
   await categoryRoutes.ensureDefaults();
   await coffretRoutes.ensureDefaults();
   await macajouRoutes.ensureDefaults();
+  await clubRoutes.ensureDefaults();
   app.listen(config.port, () => {
     console.log(`Macajou → http://localhost:${config.port}`);
     console.log(`Dashboard → http://localhost:${config.port}/dashboard/`);

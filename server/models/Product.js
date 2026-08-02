@@ -26,6 +26,7 @@ const productSchema = new mongoose.Schema(
     stock: { type: Number, default: 50 },
     inStock: { type: Boolean, default: true },
     featured: { type: Boolean, default: false },
+    limitedEdition: { type: Boolean, default: false },
     shippingNote: {
       type: String,
       default: 'Livraison express en 24h à Cotonou & Calavi',

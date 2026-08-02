@@ -33,28 +33,18 @@ async function ensureSlots() {
     { key: 'coffret.cta', value: 'Je compose' },
     { $set: { value: 'Je choisis' } }
   );
-  await SiteContent.findOneAndUpdate(
-    {
-      key: 'annonce.text',
-      value: '🥜 UNE PAUSE GOURMANDE MACAJOU, LIVRÉE EN 24H À COTONOU & CALAVI 🇧🇯',
-    },
-    {
-      $set: {
-        value: 'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
-      },
-    }
+  const anciennesAnnonces = [
+    '🥜 UNE PAUSE GOURMANDE MACAJOU, LIVRÉE EN 24H À COTONOU & CALAVI 🇧🇯',
+    'Une pause gourmande Macajou livrée en 2h* (la majorité commande pour une consommation immédiate)\n*Sous réserve de…',
+    'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
+  ];
+  await SiteContent.updateMany(
+    { key: 'annonce.text', value: { $in: anciennesAnnonces } },
+    { $set: { value: 'Une pause gourmande Macajou livrée en 2h sur Calavi et Cotonou' } }
   );
   await SiteContent.findOneAndUpdate(
-    {
-      key: 'annonce.text',
-      value:
-        'Une pause gourmande Macajou livrée en 2h* (la majorité commande pour une consommation immédiate)\n*Sous réserve de…',
-    },
-    {
-      $set: {
-        value: 'Une pause gourmande Macajou livrée en 2h à Cotonou & Calavi',
-      },
-    }
+    { key: 'adresses.title', value: 'Nos points de vente\n& livraisons' },
+    { $set: { value: 'Nos points de vente' } }
   );
   await SiteContent.findOneAndUpdate(
     { key: 'adresses.cta', value: 'Je découvre' },
@@ -70,7 +60,38 @@ async function ensureSlots() {
   );
   await SiteContent.findOneAndUpdate(
     { key: 'collection.sur', value: "Fraîchement sortis de l'atelier" },
-    { $set: { value: 'Nos formats à composer' } }
+    { $set: { value: 'E-shop' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'collection.sur', value: 'Nos formats à composer' },
+    { $set: { value: 'E-shop' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'hero.over', value: 'Pâtisserie de cajou — Bénin 🇧🇯' },
+    { $set: { value: 'Pâtisserie de cajou, Bénin 🇧🇯' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    {
+      key: 'footer.copy',
+      value: '© 2026 ETS MACAJOU — Macajou Gourmandises. Tous droits réservés.',
+    },
+    { $set: { value: '© 2026 ETS MACAJOU, Macajou Gourmandises. Tous droits réservés.' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'histoire.etape1.lieu', value: 'Monde arabo persan' },
+    { $set: { value: 'Monde arabo-persan' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'histoire.etape2.lieu', value: 'Sicile, Italie' },
+    { $set: { value: 'Sicile · Italie' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'histoire.etape3.lieu', value: 'Paris, France' },
+    { $set: { value: 'Paris · France' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'histoire.etape4.lieu', value: 'Cotonou, Bénin' },
+    { $set: { value: 'Cotonou · Bénin' } }
   );
 }
 

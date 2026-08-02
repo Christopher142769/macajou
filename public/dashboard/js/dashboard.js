@@ -3,6 +3,7 @@ let token = localStorage.getItem(TOKEN_KEY) || '';
 let editingImages = [];
 let editingCoffretImage = '';
 let editingMacajouImage = '';
+let editingClubImage = '';
 let currentReport = null;
 let categories = [];
 let galleryAssets = [];
@@ -47,6 +48,7 @@ function showApp() {
     loadProducts(),
     loadCoffrets(),
     loadMacajoux(),
+    loadClubPosts(),
     loadMedia(),
     loadTexts(),
     loadOrders(),
@@ -272,7 +274,7 @@ function renderSalesChart(series) {
   if (!root) return;
   const hasData = series?.length && series.some((p) => p.revenue || p.orders);
   if (!hasData) {
-    chartEmpty(root, '', 'En attente de vos premières ventes — la courbe apparaîtra ici.');
+    chartEmpty(root, '', 'En attente de vos premières ventes ,  la courbe apparaîtra ici.');
     return;
   }
 
@@ -466,7 +468,7 @@ function renderKpiRings(metrics, byStatus, byCity) {
 
   const rings = [
     { label: 'Livrées', value: fulfilRate, display: `${fulfilRate}%`, color: '#298553' },
-    { label: 'Panier moyen', value: Math.min(100, Math.round(((metrics.averageBasket || 0) / 50000) * 100)), display: metrics.averageBasket ? formatPrice(metrics.averageBasket) : '—', color: '#B5121B' },
+    { label: 'Panier moyen', value: Math.min(100, Math.round(((metrics.averageBasket || 0) / 50000) * 100)), display: metrics.averageBasket ? formatPrice(metrics.averageBasket) : '…', color: '#B5121B' },
     { label: 'Cotonou', value: cotonouPct, display: `${cotonouPct}%`, color: '#C9A24B' },
     { label: 'Annulations', value: cancelRate, display: `${cancelRate}%`, color: '#82090F' },
   ];
@@ -514,7 +516,7 @@ function renderRecentOrders(orders) {
   if (!recent) return;
   const list = (orders || []).slice(0, 6);
   if (!list.length) {
-    recent.innerHTML = '<div class="chart-empty" style="min-height:160px"><div class="empty-viz bars"></div><p>Aucune commande récente — elles apparaîtront ici en temps réel.</p></div>';
+    recent.innerHTML = '<div class="chart-empty" style="min-height:160px"><div class="empty-viz bars"></div><p>Aucune commande récente ,  elles apparaîtront ici en temps réel.</p></div>';
     return;
   }
   recent.className = 'mini-list mini-list-tall';
@@ -522,7 +524,9 @@ function renderRecentOrders(orders) {
     .map(
       (o) => `<div class="mini-row">
         <span class="who">${escapeHtml(o.customer?.lastName)} ${escapeHtml(o.customer?.firstName)}
-          <small>${escapeHtml(o.orderNumber)} · ${escapeHtml(o.customer?.city || '—')} · <span class="pill">${escapeHtml(o.status)}</span>${
+          <small>${escapeHtml(o.orderNumber)} · ${
+            o.customer?.fulfillment === 'pickup' ? 'Pick-up' : 'Livraison'
+          } ${escapeHtml(o.customer?.city || '…')} · <span class="pill">${escapeHtml(o.status)}</span>${
             o.paymentMethod
               ? ` · <span class="pill">${o.paymentMethod === 'online' ? 'En ligne' : 'Espèces'}${
                   o.paymentStatus === 'paid' ? ' ✓' : o.paymentStatus === 'pending' ? '…' : ''
@@ -550,8 +554,8 @@ async function loadAnalytics() {
     setStat('statOrders', report.metrics.orders);
     setStat('statRevenue', formatPrice(report.metrics.revenue));
     setStat('statReservations', report.metrics.reservations);
-    setStat('statBasket', report.metrics.averageBasket ? formatPrice(report.metrics.averageBasket) : '—');
-    setStat('statItems', report.metrics.itemsSold ?? '—');
+    setStat('statBasket', report.metrics.averageBasket ? formatPrice(report.metrics.averageBasket) : '…');
+    setStat('statItems', report.metrics.itemsSold ?? '…');
     renderTrend('statOrders', report.metrics.ordersChange, 'vs période précédente');
     renderTrend('statRevenue', report.metrics.revenueChange, 'vs période précédente');
     renderSparkline('sparkOrders', report.series, 'orders', '#C9A24B');
@@ -802,7 +806,7 @@ document.getElementById('galleryGrid')?.addEventListener('click', async (e) => {
 function openMediaPicker(mode) {
   mediaPickerMode = mode;
   mediaPickerSelection = new Set();
-  const onlyImages = mode === 'product' || mode === 'coffret' || mode === 'macajou';
+  const onlyImages = mode === 'product' || mode === 'coffret' || mode === 'macajou' || mode === 'club';
   const assets = onlyImages
     ? galleryAssets.filter((asset) => asset.resourceType === 'image')
     : galleryAssets;
@@ -820,6 +824,7 @@ function openMediaPicker(mode) {
 document.getElementById('pickProductImages')?.addEventListener('click', () => openMediaPicker('product'));
 document.getElementById('pickCoffretImage')?.addEventListener('click', () => openMediaPicker('coffret'));
 document.getElementById('pickMacajouImage')?.addEventListener('click', () => openMediaPicker('macajou'));
+document.getElementById('pickClubImage')?.addEventListener('click', () => openMediaPicker('club'));
 document.getElementById('mediaPickerGrid')?.addEventListener('click', (e) => {
   const card = e.target.closest('[data-asset-id]');
   if (!card) return;
@@ -851,6 +856,9 @@ document.getElementById('confirmMediaPicker')?.addEventListener('click', async (
   } else if (mediaPickerMode === 'macajou') {
     editingMacajouImage = selected[0].url;
     renderMacajouPreview();
+  } else if (mediaPickerMode === 'club') {
+    editingClubImage = selected[0].url;
+    renderClubPreview();
   } else if (mediaPickerMode?.startsWith('site:')) {
     const key = mediaPickerMode.slice(5);
     const asset = selected[0];
@@ -891,7 +899,9 @@ async function loadProducts() {
       ${mediaThumb(p.images?.[0])}
       <div class="body">
         <h3>${escapeHtml(p.name)}</h3>
-        <div class="meta">${formatPrice(p.price)} · ${escapeHtml(p.category)} · ${p.active ? 'Actif' : 'Masqué'}</div>
+        <div class="meta">${formatPrice(p.price)} · ${escapeHtml(p.category)} · ${p.active ? 'Actif' : 'Masqué'}${
+          p.limitedEdition ? ' · Édition limitée' : ''
+        }</div>
         <div class="actions">
           <button type="button" data-edit="${p._id}">Modifier</button>
           <button type="button" data-del="${p._id}">Supprimer</button>
@@ -940,6 +950,7 @@ function openProductDialog(p = null) {
   document.getElementById('pStock').value = p?.stock ?? 50;
   document.getElementById('pActive').checked = p?.active !== false;
   document.getElementById('pFeatured').checked = !!p?.featured;
+  document.getElementById('pLimited').checked = !!p?.limitedEdition;
   document.getElementById('pInStock').checked = p?.inStock !== false;
   document.getElementById('pFiles').value = '';
   editingImages = p?.images ? [...p.images] : [];
@@ -995,7 +1006,7 @@ document.getElementById('flavorsList')?.addEventListener('click', (e) => {
 function renderPreview() {
   const box = document.getElementById('pImagesPreview');
   if (!editingImages.length) {
-    box.innerHTML = '<span style="opacity:.6;font-size:.85rem">Aucune photo — ajoutez-en pour la landing &amp; la fiche.</span>';
+    box.innerHTML = '<span style="opacity:.6;font-size:.85rem">Aucune photo ,  ajoutez-en pour la landing &amp; la fiche.</span>';
     return;
   }
   box.innerHTML = editingImages
@@ -1056,6 +1067,7 @@ productForm.addEventListener('submit', async (e) => {
       stock: Number(document.getElementById('pStock').value) || 0,
       active: document.getElementById('pActive').checked,
       featured: document.getElementById('pFeatured').checked,
+      limitedEdition: document.getElementById('pLimited').checked,
       inStock: document.getElementById('pInStock').checked,
     };
 
@@ -1098,6 +1110,7 @@ function openCoffretDialog(c = null) {
   document.getElementById('cOrder').value = c?.order ?? 0;
   document.getElementById('cActive').checked = c?.active !== false;
   document.getElementById('cFeatured').checked = !!c?.featured;
+  document.getElementById('cLimited').checked = !!c?.limitedEdition || Number(c?.capacity) === 10;
   document.getElementById('cFile').value = '';
   editingCoffretImage = c?.image || c?.images?.[0] || '';
   renderCoffretPreview();
@@ -1115,7 +1128,9 @@ async function loadCoffrets() {
       ${mediaThumb(c.image || c.images?.[0])}
       <div class="body">
         <h3>${escapeHtml(c.name)}</h3>
-        <div class="meta">${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}</div>
+        <div class="meta">${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}${
+          c.featured ? ' · ★ Sélection du jour' : ''
+        }${c.limitedEdition || c.capacity === 10 ? ' · Édition limitée' : ''}</div>
         <div class="actions">
           <button type="button" data-edit-coffret="${c._id}">Modifier</button>
           <button type="button" data-del-coffret="${c._id}">Supprimer</button>
@@ -1124,7 +1139,7 @@ async function loadCoffrets() {
       </div>
     </article>`
       )
-      .join('') || '<p class="empty-state">Aucun coffret — créez les formats 4, 8, 10, 16, 18.</p>';
+      .join('') || '<p class="empty-state">Aucun coffret ,  créez les formats 4, 8, 10, 16, 18.</p>';
 }
 
 document.getElementById('newCoffretBtn')?.addEventListener('click', () => openCoffretDialog());
@@ -1181,6 +1196,7 @@ coffretForm?.addEventListener('submit', async (e) => {
       order: Number(document.getElementById('cOrder').value) || 0,
       active: document.getElementById('cActive').checked,
       featured: document.getElementById('cFeatured').checked,
+      limitedEdition: document.getElementById('cLimited').checked,
     };
     const id = document.getElementById('coffretId').value;
     if (id) await api(`/api/coffrets/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
@@ -1238,7 +1254,7 @@ async function loadMacajoux() {
       </div>
     </article>`
       )
-      .join('') || '<p class="empty-state">Aucun macajou — ajoutez Chocolat, Pistache, etc.</p>';
+      .join('') || '<p class="empty-state">Aucun macajou ,  ajoutez Chocolat, Pistache, etc.</p>';
 }
 
 document.getElementById('newMacajouBtn')?.addEventListener('click', () => openMacajouDialog());
@@ -1301,6 +1317,173 @@ macajouForm?.addEventListener('submit', async (e) => {
   }
 });
 
+/* ============ CLUB MACAJOU ============ */
+const clubDialog = document.getElementById('clubDialog');
+const clubForm = document.getElementById('clubForm');
+
+const CLUB_TYPE_LABEL = {
+  event: 'Événement',
+  coming_soon: 'Coming soon',
+  news: 'Actualité',
+};
+
+function toDatetimeLocalValue(d) {
+  if (!d) return '';
+  const dt = new Date(d);
+  if (Number.isNaN(dt.getTime())) return '';
+  const pad = (n) => String(n).padStart(2, '0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+}
+
+function toggleClubEventFields() {
+  const wrap = document.getElementById('clubEventFields');
+  if (!wrap) return;
+  wrap.hidden = document.getElementById('clubType')?.value !== 'event';
+}
+
+function renderClubPreview() {
+  const box = document.getElementById('clubImagePreview');
+  if (!box) return;
+  box.innerHTML = editingClubImage
+    ? `<div class="thumb"><img src="${escapeHtml(editingClubImage)}" alt=""><button type="button" data-clear-club-img>✕</button></div>`
+    : '';
+}
+
+function openClubDialog(p = null) {
+  document.getElementById('clubError').hidden = true;
+  document.getElementById('clubDialogTitle').textContent = p ? 'Modifier la publication' : 'Nouvelle publication';
+  document.getElementById('clubId').value = p?._id || '';
+  document.getElementById('clubType').value = p?.type || 'news';
+  document.getElementById('clubTitle').value = p?.title || '';
+  document.getElementById('clubExcerpt').value = p?.excerpt || '';
+  document.getElementById('clubBody').value = p?.body || '';
+  document.getElementById('clubEventDate').value = toDatetimeLocalValue(p?.eventDate);
+  document.getElementById('clubEventLocation').value = p?.eventLocation || '';
+  document.getElementById('clubOrder').value = p?.order ?? 0;
+  document.getElementById('clubShowPopup').checked = p?.showPopup !== false;
+  document.getElementById('clubActive').checked = p?.active !== false;
+  document.getElementById('clubFile').value = '';
+  editingClubImage = p?.image || '';
+  renderClubPreview();
+  toggleClubEventFields();
+  clubDialog.showModal();
+}
+
+async function loadClubPosts() {
+  const items = await api('/api/club/admin/all', { headers: authHeaders(false) });
+  const grid = document.getElementById('clubGrid');
+  if (!grid) return;
+  grid.innerHTML =
+    items
+      .map(
+        (p) => `<article class="card">
+      ${mediaThumb(p.image)}
+      <div class="body">
+        <h3>${escapeHtml(p.title)}</h3>
+        <div class="meta">${escapeHtml(CLUB_TYPE_LABEL[p.type] || p.type)} · ${p.showPopup ? 'Pop-up' : 'Sans pop-up'} · ${p.active ? 'Actif' : 'Masqué'}</div>
+        <div class="actions">
+          <button type="button" data-edit-club="${p._id}">Modifier</button>
+          <button type="button" data-del-club="${p._id}">Supprimer</button>
+          <a href="/club.html" target="_blank">Voir sur le site</a>
+        </div>
+      </div>
+    </article>`
+      )
+      .join('') || '<p class="empty-state">Aucune publication club. Créez un événement ou un coming soon.</p>';
+  await loadClubRsvps();
+}
+
+async function loadClubRsvps() {
+  const tbody = document.getElementById('clubRsvpsBody');
+  if (!tbody) return;
+  try {
+    const items = await api('/api/club/admin/rsvps', { headers: authHeaders(false) });
+    tbody.innerHTML = items.length
+      ? items
+          .map(
+            (r) => `<tr>
+          <td>${escapeHtml(new Date(r.createdAt).toLocaleString('fr-FR'))}</td>
+          <td>${escapeHtml(r.clubPost?.title || '—')}</td>
+          <td>${escapeHtml(r.firstName)}</td>
+          <td>${escapeHtml(r.lastName)}</td>
+          <td><a href="mailto:${escapeHtml(r.email)}">${escapeHtml(r.email)}</a></td>
+          <td><a href="tel:${escapeHtml(r.phone)}">${escapeHtml(r.phone)}</a></td>
+        </tr>`
+          )
+          .join('')
+      : '<tr><td colspan="6" class="empty-state">Aucune confirmation pour le moment.</td></tr>';
+  } catch (ex) {
+    tbody.innerHTML = `<tr><td colspan="6" class="empty-state">${escapeHtml(ex.message)}</td></tr>`;
+  }
+}
+
+document.getElementById('newClubBtn')?.addEventListener('click', () => openClubDialog());
+document.getElementById('cancelClub')?.addEventListener('click', () => clubDialog.close());
+document.getElementById('cancelClub2')?.addEventListener('click', () => clubDialog.close());
+document.getElementById('clubType')?.addEventListener('change', toggleClubEventFields);
+document.getElementById('clubImagePreview')?.addEventListener('click', (e) => {
+  if (e.target.closest('[data-clear-club-img]')) {
+    editingClubImage = '';
+    renderClubPreview();
+  }
+});
+
+document.getElementById('clubGrid')?.addEventListener('click', async (e) => {
+  const edit = e.target.closest('[data-edit-club]');
+  const del = e.target.closest('[data-del-club]');
+  if (edit) {
+    const items = await api('/api/club/admin/all', { headers: authHeaders(false) });
+    const p = items.find((x) => x._id === edit.dataset.editClub);
+    if (p) openClubDialog(p);
+  }
+  if (del && confirm('Supprimer cette publication et ses confirmations ?')) {
+    await api(`/api/club/${del.dataset.delClub}`, { method: 'DELETE', headers: authHeaders(false) });
+    loadClubPosts();
+  }
+});
+
+clubForm?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const err = document.getElementById('clubError');
+  err.hidden = true;
+  try {
+    const file = document.getElementById('clubFile').files?.[0];
+    if (file) {
+      const fd = new FormData();
+      fd.append('file', file);
+      const up = await fetch('/api/upload/one', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+        body: fd,
+      });
+      const upData = await up.json();
+      if (!up.ok) throw new Error(upData.error || 'Upload impossible');
+      editingClubImage = upData.url;
+    }
+    const type = document.getElementById('clubType').value;
+    const body = {
+      type,
+      title: document.getElementById('clubTitle').value.trim(),
+      excerpt: document.getElementById('clubExcerpt').value.trim(),
+      body: document.getElementById('clubBody').value.trim(),
+      image: editingClubImage,
+      eventDate: type === 'event' ? document.getElementById('clubEventDate').value || null : null,
+      eventLocation: type === 'event' ? document.getElementById('clubEventLocation').value.trim() : '',
+      order: Number(document.getElementById('clubOrder').value) || 0,
+      showPopup: document.getElementById('clubShowPopup').checked,
+      active: document.getElementById('clubActive').checked,
+    };
+    const id = document.getElementById('clubId').value;
+    if (id) await api(`/api/club/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
+    else await api('/api/club', { method: 'POST', headers: authHeaders(), body: JSON.stringify(body) });
+    clubDialog.close();
+    loadClubPosts();
+  } catch (ex) {
+    err.hidden = false;
+    err.textContent = ex.message;
+  }
+});
+
 async function loadOrders() {
   const orders = await api('/api/orders', { headers: authHeaders(false) });
   const statuses = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'];
@@ -1316,7 +1499,7 @@ async function loadOrders() {
       failed: 'échoué',
       not_required: 'à la livraison',
     };
-    return `${method} · ${statusMap[o.paymentStatus] || o.paymentStatus || '—'}`;
+    return `${method} · ${statusMap[o.paymentStatus] || o.paymentStatus || '…'}`;
   };
 
   const itemLabel = (i) => {
@@ -1330,7 +1513,7 @@ async function loadOrders() {
 
   document.getElementById('ordersList').innerHTML = `
     <table>
-      <thead><tr><th>N°</th><th>Client</th><th>Livraison</th><th>Articles</th><th>Paiement</th><th>Total</th><th>Statut</th><th>Date</th></tr></thead>
+      <thead><tr><th>N°</th><th>Client</th><th>Retrait / Livraison</th><th>Articles</th><th>Paiement</th><th>Total</th><th>Statut</th><th>Date</th></tr></thead>
       <tbody>
         ${orders
           .map(
@@ -1338,7 +1521,7 @@ async function loadOrders() {
           <tr>
             <td>${escapeHtml(o.orderNumber)}</td>
             <td>${escapeHtml(o.customer.lastName)} ${escapeHtml(o.customer.firstName)}<br><small>${escapeHtml(o.customer.phone)}</small></td>
-            <td>${escapeHtml(o.customer.city)}<br><small>${escapeHtml(o.customer.address)}</small></td>
+            <td>${o.customer.fulfillment === 'pickup' ? 'Pick-up' : 'Livraison'} · ${escapeHtml(o.customer.city)}<br><small>${escapeHtml(o.customer.address)}</small></td>
             <td>${o.items.map(itemLabel).join('<br>')}</td>
             <td><small>${escapeHtml(payLabel(o))}</small></td>
             <td>${formatPrice(o.total)}</td>
@@ -1577,7 +1760,7 @@ document.getElementById('mediaSections').addEventListener('change', async (e) =>
       headers: authHeaders(),
       body: JSON.stringify({ url: upData.url }),
     });
-    status.textContent = 'Enregistré — visible sur le site';
+    status.textContent = 'Enregistré ,  visible sur le site';
     await loadGallery();
     await loadMedia();
   } catch (ex) {
@@ -1676,7 +1859,7 @@ document.getElementById('textSections')?.addEventListener('click', async (e) => 
         headers: authHeaders(),
         body: JSON.stringify({ value: input?.value || '' }),
       });
-      status.textContent = 'Enregistré — visible sur le site';
+      status.textContent = 'Enregistré ,  visible sur le site';
     } else {
       if (!confirm('Revenir au texte d’origine pour cet emplacement ?')) return;
       status.textContent = 'Réinitialisation…';

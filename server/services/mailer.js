@@ -24,7 +24,7 @@ async function sendViaResend({ to, code }) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `${code} — Code de connexion Macajou`,
+      subject: `${code} ,  Code de connexion Macajou`,
       html: emailHtml(code),
       text: emailText(code),
     }),
@@ -50,7 +50,7 @@ async function sendViaBrevo({ to, code }) {
     body: JSON.stringify({
       sender: { name: 'Macajou Gourmandises', email: senderEmail },
       to: [{ email: to }],
-      subject: `${code} — Code de connexion Macajou`,
+      subject: `${code} ,  Code de connexion Macajou`,
       htmlContent: emailHtml(code),
       textContent: emailText(code),
     }),
@@ -87,7 +87,7 @@ async function sendViaSmtp({ to, code }) {
   await transporter.sendMail({
     from: `"Macajou Gourmandises" <${config.smtpUser}>`,
     to,
-    subject: `${code} — Code de connexion Macajou`,
+    subject: `${code} ,  Code de connexion Macajou`,
     text: emailText(code),
     html: emailHtml(code),
   });

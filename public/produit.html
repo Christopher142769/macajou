@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="/assets/logo-macajou.png">
 <link rel="apple-touch-icon" href="/assets/logo-macajou.png">
-<title>Produit — Macajou Gourmandises</title>
+<title>Produit, Macajou Gourmandises</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -55,12 +55,15 @@
 <div class="shop-top">Livraison 24h à Cotonou &amp; Calavi</div>
 <header class="shop-nav">
   <nav class="links left">
+    <a href="/">← Accueil</a>
     <a href="/#collection">E-Shop</a>
     <a href="/#adresses">Nos points de vente</a>
-    <a href="/#cadeaux">Entreprises</a>
   </nav>
-  <a class="logo" href="/">Macajou</a>
+  <a class="logo" href="/" aria-label="Macajou, Accueil">
+    <img src="/assets/logo-macajou.png" alt="Macajou">
+  </a>
   <nav class="links right">
+    <a class="shop-home" href="/">Retour à l’accueil</a>
     <a href="/panier.html" class="cart-link" aria-label="Panier">
       Panier
       <span class="cart-count" data-cart-count hidden>0</span>
@@ -109,9 +112,15 @@ async function load(){
 function render(){
   state.hidden = true;
   root.hidden = false;
-  document.title = product.name + ' — Macajou';
-  const images = product.images?.length ? product.images : ['/uploads/placeholder-coffret12.svg'];
+  document.title = product.name + ' ,  Macajou';
+  const limited = !!product.limitedEdition;
+  const images = limited
+    ? ['/assets/edition-limitee.svg']
+    : product.images?.length
+      ? product.images
+      : ['/uploads/placeholder-coffret12.svg'];
   const flavors = product.flavors || [];
+  const badge = limited ? 'Édition limitée' : product.badge;
   root.innerHTML = `
     <div class="gallery">
       <div class="thumbs" id="thumbs">
@@ -120,14 +129,19 @@ function render(){
       <div class="main-shot"><img id="mainImg" src="${esc(images[0])}" alt="${esc(product.name)}"></div>
     </div>
     <div class="info">
-      ${product.badge ? `<div class="badge">${esc(product.badge)}</div>` : ''}
+      ${badge ? `<div class="badge">${esc(badge)}</div>` : ''}
       <h1>${esc(product.name)}</h1>
+      ${
+        limited
+          ? `<p style="margin:1rem 0 1.2rem;opacity:.85;line-height:1.55;border-left:2px solid var(--rouge);padding-left:.85rem">Édition limitée pour les occasions — emballage spécial, hors packaging Macajou classique.</p>`
+          : ''
+      }
       ${flavors.length ? `<div class="flavors">${flavors.map(f=>`
         <div class="flavor">
           <div class="circle">${f.image?`<img src="${esc(f.image)}" alt="">`:''}</div>
           <div class="name">${esc(f.name)}</div>
           <div class="qty">x${esc(f.quantity||1)}</div>
-        </div>`).join('')}</div>` : (product.shortDescription?`<p style="margin:1.2rem 0;opacity:.8">${esc(product.shortDescription)}</p>`:'')}
+        </div>`).join('')}</div>` : (!limited && product.shortDescription?`<p style="margin:1.2rem 0;opacity:.8">${esc(product.shortDescription)}</p>`:'')}
       <div class="price-row">
         <span class="stock">${product.inStock!==false ? 'En stock' : 'En rupture'}</span>
         <span class="amount fmt">${Cart.formatPrice(product.price)}</span>
@@ -140,11 +154,12 @@ function render(){
       <div class="actions">
         <button class="btn btn-dark" id="addBtn" ${product.inStock===false?'disabled':''}>Ajouter au panier</button>
         <a class="btn btn-outline" href="/panier.html">Voir le panier</a>
+        <a class="btn btn-outline" href="/">Retour à l’accueil</a>
       </div>
       <div class="acc">
-        <details open><summary>Description</summary><div class="acc-body">${esc(product.description||product.shortDescription||'—')}</div></details>
-        <details><summary>Ingrédients &amp; allergènes</summary><div class="acc-body">${esc(product.ingredients||'—')}</div></details>
-        <details><summary>Conservation</summary><div class="acc-body">${esc(product.conservation||'—')}</div></details>
+        <details open><summary>Description</summary><div class="acc-body">${esc(product.description||product.shortDescription||', ')}</div></details>
+        <details><summary>Ingrédients &amp; allergènes</summary><div class="acc-body">${esc(product.ingredients||', ')}</div></details>
+        <details><summary>Conservation</summary><div class="acc-body">${esc(product.conservation||', ')}</div></details>
       </div>
     </div>`;
 

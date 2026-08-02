@@ -5,54 +5,104 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="/assets/logo-macajou.png">
 <link rel="apple-touch-icon" href="/assets/logo-macajou.png">
-<title>Panier &amp; commande — Macajou</title>
+<title>Panier et commande, Macajou</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="/css/shop.css">
 <style>
-.cart-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:3rem;align-items:start}
-h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);text-transform:uppercase;letter-spacing:.04em;margin-bottom:1.8rem}
-.line{display:grid;grid-template-columns:88px 1fr auto;gap:1rem;padding:1.2rem 0;border-bottom:1px solid var(--line);align-items:center}
-.line img{width:88px;height:88px;object-fit:cover;background:var(--creme-2)}
-.line h3{font-family:var(--display);font-size:1.15rem;font-weight:500;line-height:1.25}
-.line .meta{font-size:.85rem;opacity:.7;margin-top:.2rem}
-.line .flavors{font-size:.82rem;margin-top:.35rem;line-height:1.4}
-.line .controls{display:flex;align-items:center;gap:.5rem;margin-top:.55rem}
-.line .controls input{width:56px;text-align:center;padding:.35rem;border:1px solid var(--line);background:#fff}
-.line .controls button{border:none;background:transparent;cursor:pointer;text-decoration:underline;font-size:.8rem;opacity:.7}
-.line .price{font-family:var(--display);font-size:1.1rem;white-space:nowrap}
-.panel{background:#fff;border:1px solid var(--line);padding:1.6rem}
-.panel h2{font-family:var(--display);font-size:1.45rem;font-weight:500;margin-bottom:1rem}
-.summary{display:flex;justify-content:space-between;margin:1.2rem 0;padding-top:1rem;border-top:1px solid var(--line);font-family:var(--display);font-size:1.25rem}
-.empty{padding:3rem 0;opacity:.7}
-.success{display:none;text-align:center;padding:3rem 1rem}
-.success.show{display:block}
-.success h2{font-family:var(--display);font-size:2.2rem;margin-bottom:.6rem}
+h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);text-transform:uppercase;letter-spacing:.04em;margin-bottom:.45rem}
+.cart-lead{opacity:.7;margin-bottom:2rem;max-width:42ch}
+.cart-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(260px,.7fr);gap:2.2rem;align-items:start}
+.cart-lines{background:#fff;border:1px solid var(--line)}
+.line{display:grid;grid-template-columns:96px minmax(0,1fr) auto;gap:1.1rem;padding:1.25rem 1.2rem;border-bottom:1px solid var(--line);align-items:center}
+.line:last-child{border-bottom:none}
+.line img{width:96px;height:96px;object-fit:cover;background:var(--creme-2)}
+.line h3{font-family:var(--display);font-size:1.2rem;font-weight:500;line-height:1.25}
+.line .meta{font-size:.85rem;opacity:.7;margin-top:.25rem}
+.line .flavors{font-size:.82rem;margin-top:.4rem;line-height:1.45;opacity:.85}
+.line .controls{display:flex;align-items:center;gap:.85rem;margin-top:.7rem;flex-wrap:wrap}
+.line .controls .qty{justify-content:flex-start}
+.line .controls button[data-remove]{border:none;background:transparent;cursor:pointer;text-decoration:underline;font-size:.8rem;opacity:.7}
+.line .price{font-family:var(--display);font-size:1.2rem;white-space:nowrap;align-self:start;padding-top:.2rem}
+.cart-summary{background:linear-gradient(180deg,#fffdf8,#f7f0e4);border:1px solid var(--line);padding:1.6rem 1.4rem;position:sticky;top:110px}
+.cart-summary h2{font-family:var(--display);font-size:1.35rem;font-weight:500;margin-bottom:1rem;text-transform:uppercase;letter-spacing:.04em}
+.summary-row{display:flex;justify-content:space-between;gap:1rem;font-size:.95rem;margin-bottom:.55rem}
+.summary-row.total{margin-top:1rem;padding-top:1rem;border-top:1px solid var(--line);font-family:var(--display);font-size:1.35rem}
+.cart-actions{display:flex;flex-direction:column;gap:.65rem;margin-top:1.4rem}
+.cart-actions .btn{width:100%}
+.empty{padding:3.5rem 1.5rem;text-align:center;opacity:.75;line-height:1.6}
+.empty a{text-decoration:underline}
+
+/* Checkout modal */
+.checkout-overlay{position:fixed;inset:0;z-index:300;background:rgba(28,22,17,.48);display:grid;place-items:center;padding:1rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.checkout-overlay.show{opacity:1;pointer-events:auto}
+.checkout-modal{background:var(--creme);border:1px solid var(--line);width:min(520px,100%);max-height:min(92vh,860px);overflow:auto;padding:1.6rem 1.4rem 1.5rem;position:relative}
+.checkout-modal h2{font-family:var(--display);font-size:1.55rem;font-weight:500;margin-bottom:.35rem;text-transform:uppercase;letter-spacing:.03em}
+.panel-lead{opacity:.72;font-size:.92rem;line-height:1.45;margin-bottom:1.1rem}
+.checkout-close{position:absolute;top:.85rem;right:.9rem;border:none;background:transparent;font-size:1.35rem;cursor:pointer;line-height:1;opacity:.55}
+.checkout-close:hover{opacity:1}
 .row2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
 .pay-options{display:flex;flex-direction:column;gap:.65rem;margin:1rem 0 1.2rem}
 .pay-option{display:flex;gap:.75rem;align-items:flex-start;padding:.9rem 1rem;border:1px solid var(--line);background:#fff;cursor:pointer}
 .pay-option:has(input:checked){border-color:var(--encre);background:#f3eee3}
 .pay-option.is-disabled{opacity:.45;pointer-events:none;filter:grayscale(.35);cursor:not-allowed;background:#f3f0ea}
-.pay-option.is-disabled strong{opacity:.85}
 .pay-option input{width:auto;margin-top:.2rem;accent-color:var(--rouge)}
 .pay-option strong{display:block;font-size:.95rem;margin-bottom:.15rem}
 .pay-option span{font-size:.82rem;opacity:.75;line-height:1.4}
+.step{display:none}
+.step.is-on{display:block}
+.step-head{margin-bottom:1rem}
+.step-kicker{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--brun);margin-bottom:.35rem}
+.step-q{font-family:var(--display);font-size:1.15rem;font-weight:500;line-height:1.3;margin:0}
+.choice-row{display:grid;grid-template-columns:1fr 1fr;gap:.75rem;margin-bottom:1rem}
+.choice{display:block;padding:1rem .9rem;border:1px solid var(--line);background:#fff;cursor:pointer;text-align:center}
+.choice:has(input:checked){border-color:var(--encre);background:#f3eee3}
+.choice input{position:absolute;opacity:0;pointer-events:none}
+.choice strong{display:block;font-size:.95rem;margin-bottom:.25rem}
+.choice span{display:block;font-size:.8rem;opacity:.7;line-height:1.35}
+.step-nav{display:flex;flex-wrap:wrap;gap:.65rem;margin-top:1.1rem}
+.step-dots{display:flex;gap:.35rem;margin:0 0 1rem}
+.step-dots span{width:8px;height:8px;border-radius:50%;background:rgba(28,22,17,.18)}
+.step-dots span.on{background:var(--rouge)}
+.modal-summary{display:flex;justify-content:space-between;margin:1.1rem 0;padding-top:1rem;border-top:1px solid var(--line);font-family:var(--display);font-size:1.25rem}
+
+/* Success */
+.success{display:none;min-height:70vh;align-items:center;justify-content:center;padding:2rem 0 4rem}
+.success.show{display:flex}
+.success-card{width:min(640px,100%);text-align:center;padding:2.6rem 1.8rem 2.4rem;background:linear-gradient(165deg,#fffdf8 0%,#f3e8d4 55%,#efe0c8 100%);border:1px solid rgba(28,22,17,.08);position:relative;overflow:hidden}
+.success-card::before{content:"";position:absolute;inset:12px;border:1px solid rgba(181,18,27,.18);pointer-events:none}
+.success-mark{width:auto;height:auto;margin:0 auto 1.35rem;display:grid;place-items:center;background:none;border-radius:0}
+.success-mark img{width:min(180px,46vw);height:auto;display:block}
+.success-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.55rem}
+.success-script{font-family:var(--script);font-size:clamp(2.4rem,6vw,3.4rem);color:var(--rouge);line-height:1;margin-bottom:.35rem}
+.success h2{font-family:var(--display);font-size:clamp(1.7rem,3.5vw,2.3rem);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.8rem}
+.success-msg{opacity:.8;line-height:1.6;max-width:38ch;margin:0 auto 1.2rem}
+.success-order{display:inline-block;padding:.55rem 1rem;border:1px solid rgba(28,22,17,.12);background:rgba(251,245,232,.85);font-family:var(--display);font-size:1.15rem;letter-spacing:.04em;margin-bottom:1.6rem}
+.success-actions{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center}
+
 @media(max-width:900px){
-  .cart-grid{grid-template-columns:1fr}
-  .row2{grid-template-columns:1fr}
+  .cart-layout{grid-template-columns:1fr}
+  .cart-summary{position:static}
+  .row2,.choice-row{grid-template-columns:1fr}
+  .line{grid-template-columns:72px minmax(0,1fr);gap:.9rem}
+  .line .price{grid-column:2;justify-self:start;padding-top:0}
+  .line img{width:72px;height:72px}
 }
 </style>
 </head>
 <body>
-<div class="shop-top">Commande &amp; livraison Cotonou / Calavi</div>
+<div class="shop-top">Commande · livraison ou retrait boutique</div>
 <header class="shop-nav">
   <nav class="links left">
+    <a href="/">← Accueil</a>
     <a href="/#collection">E-Shop</a>
-    <a href="/">Accueil</a>
   </nav>
-  <a class="logo" href="/">Macajou</a>
+  <a class="logo" href="/" aria-label="Macajou, Accueil">
+    <img src="/assets/logo-macajou.png" alt="Macajou">
+  </a>
   <nav class="links right">
+    <a class="shop-home" href="/">Retour à l’accueil</a>
     <a href="/panier.html" class="cart-link">
       Panier
       <span class="cart-count" data-cart-count hidden>0</span>
@@ -62,90 +112,288 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
 
 <main class="shop-wrap">
   <div id="success" class="success">
-    <h2>Commande reçue</h2>
-    <p id="successMsg">Merci. Nous vous contactons rapidement pour confirmer la livraison.</p>
-    <p style="margin:1.4rem 0"><a class="btn btn-outline" href="/#collection">Continuer vos achats</a></p>
+    <div class="success-card">
+      <div class="success-mark"><img src="/assets/logo-macajou.png" alt=""></div>
+      <p class="success-eyebrow">Macajou</p>
+      <p class="success-script">Merci</p>
+      <h2>Commande reçue</h2>
+      <p class="success-msg" id="successMsg">Nous préparons votre commande avec soin et vous contactons rapidement pour confirmer.</p>
+      <div class="success-order" id="successOrder" hidden></div>
+      <div class="success-actions">
+        <a class="btn btn-rouge" href="/">Retour à l’accueil</a>
+        <a class="btn btn-outline" href="/#collection">Continuer les achats</a>
+      </div>
+    </div>
   </div>
 
   <div id="checkout">
     <h1>Votre panier</h1>
-    <div class="cart-grid">
+    <p class="cart-lead">Vérifiez votre sélection, puis finalisez ou continuez vos achats.</p>
+
+    <div class="cart-layout">
       <div>
-        <div id="lines"></div>
-        <p id="empty" class="empty" hidden>Votre panier est vide. <a href="/#collection" style="text-decoration:underline">Découvrir la collection</a></p>
+        <div class="cart-lines" id="lines"></div>
+        <p id="empty" class="empty" hidden>Votre panier est vide.<br><a href="/#collection">Découvrir la collection</a></p>
       </div>
-      <aside class="panel">
-        <h2>Livraison &amp; paiement</h2>
-        <form id="orderForm">
-          <div class="row2">
-            <div class="field">
-              <label for="lastName">Nom</label>
-              <input id="lastName" name="lastName" required autocomplete="family-name">
-            </div>
-            <div class="field">
-              <label for="firstName">Prénom</label>
-              <input id="firstName" name="firstName" required autocomplete="given-name">
-            </div>
-          </div>
-          <div class="field">
-            <label for="phone">Numéro de téléphone</label>
-            <input id="phone" name="phone" type="tel" required placeholder="ex. 01 XX XX XX XX" autocomplete="tel">
-          </div>
-          <div class="field">
-            <label for="city">Ville</label>
-            <select id="city" name="city" required>
-              <option value="">Choisir…</option>
-              <option value="Cotonou">Cotonou</option>
-              <option value="Calavi">Calavi</option>
-            </select>
-          </div>
-          <div class="field">
-            <label for="address">Adresse de livraison</label>
-            <textarea id="address" name="address" required placeholder="Quartier, rue, repères…"></textarea>
-          </div>
-          <div class="field">
-            <label for="notes">Notes (optionnel)</label>
-            <textarea id="notes" name="notes" placeholder="Horaires, précisions…"></textarea>
-          </div>
 
-          <span style="display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:.4rem 0 .55rem">Mode de paiement</span>
-          <div class="pay-options">
-            <label class="pay-option">
-              <input type="radio" name="paymentMethod" value="cash" checked>
-              <div>
-                <strong>Espèces à la livraison</strong>
-                <span>Payez en cash lorsque votre commande arrive.</span>
-              </div>
-            </label>
-            <label class="pay-option" id="onlinePayOption">
-              <input type="radio" name="paymentMethod" value="online">
-              <div>
-                <strong>Paiement en ligne</strong>
-                <span>Carte ou Mobile Money via FedaPay (sécurisé).</span>
-              </div>
-            </label>
-          </div>
-
-          <div class="summary">
-            <span>Total</span>
-            <span id="total" class="fmt">0 FCFA</span>
-          </div>
-          <button class="btn btn-rouge" type="submit" style="width:100%" id="submitBtn">Valider la commande</button>
-          <p id="formError" style="color:var(--rouge);margin-top:.8rem;font-size:.9rem" hidden></p>
-        </form>
+      <aside class="cart-summary" id="cartSummary" hidden>
+        <h2>Récapitulatif</h2>
+        <div class="summary-row"><span>Articles</span><span id="itemCount">0</span></div>
+        <div class="summary-row total"><span>Total</span><span id="total" class="fmt">0 FCFA</span></div>
+        <div class="cart-actions">
+          <button type="button" class="btn btn-rouge" id="finalizeBtn">Finaliser la commande</button>
+          <a class="btn btn-outline" href="/#collection">Continuer les achats</a>
+        </div>
       </aside>
     </div>
   </div>
 </main>
+
+<div class="checkout-overlay" id="checkoutOverlay" aria-hidden="true">
+  <div class="checkout-modal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+    <button type="button" class="checkout-close" id="closeCheckout" aria-label="Fermer">×</button>
+    <h2 id="checkoutTitle">Votre commande</h2>
+    <p class="panel-lead">Quelques questions simples, étape par étape.</p>
+    <div class="step-dots" id="stepDots" aria-hidden="true">
+      <span class="on"></span><span></span><span></span><span></span><span></span>
+    </div>
+    <p id="formError" style="color:var(--rouge);margin:0 0 .8rem;font-size:.9rem" hidden></p>
+    <form id="orderForm">
+      <div class="step is-on" data-step="1">
+        <div class="step-head">
+          <p class="step-kicker">Étape 1</p>
+          <p class="step-q">Souhaitez-vous une livraison ou un passage en pick-up à la boutique&nbsp;?</p>
+        </div>
+        <div class="choice-row">
+          <label class="choice">
+            <input type="radio" name="fulfillment" value="delivery" checked>
+            <strong>Livraison</strong>
+            <span>Cotonou ou Calavi</span>
+          </label>
+          <label class="choice">
+            <input type="radio" name="fulfillment" value="pickup">
+            <strong>Pick-up</strong>
+            <span>Retrait en boutique</span>
+          </label>
+        </div>
+        <div class="step-nav">
+          <button type="button" class="btn btn-rouge" data-next>Continuer</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="2">
+        <div class="step-head">
+          <p class="step-kicker">Étape 2</p>
+          <p class="step-q">À quel nom enregistrer votre commande&nbsp;?</p>
+        </div>
+        <div class="row2">
+          <div class="field">
+            <label for="lastName">Nom</label>
+            <input id="lastName" name="lastName" required autocomplete="family-name">
+          </div>
+          <div class="field">
+            <label for="firstName">Prénom</label>
+            <input id="firstName" name="firstName" required autocomplete="given-name">
+          </div>
+        </div>
+        <div class="step-nav">
+          <button type="button" class="btn btn-outline" data-prev>Retour</button>
+          <button type="button" class="btn btn-rouge" data-next>Continuer</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="3">
+        <div class="step-head">
+          <p class="step-kicker">Étape 3</p>
+          <p class="step-q" id="step3Question">Quels détails fournir à notre livreur&nbsp;?</p>
+        </div>
+        <div class="field" id="cityField">
+          <label for="city" id="cityLabel">Ville</label>
+          <select id="city" name="city" required>
+            <option value="">Choisir…</option>
+            <option value="Cotonou">Cotonou</option>
+            <option value="Calavi">Calavi</option>
+          </select>
+        </div>
+        <div class="field" id="addressField">
+          <label for="address" id="addressLabel">Adresse / repères</label>
+          <textarea id="address" name="address" placeholder="Quartier, rue, immeuble, indications utiles…"></textarea>
+        </div>
+        <p id="pickupHint" hidden style="font-size:.9rem;opacity:.75;line-height:1.45;margin-bottom:1rem">
+          Nous préparons votre commande pour un retrait à la boutique Macajou. Indiquez la ville de la boutique la plus pratique pour vous.
+        </p>
+        <div class="step-nav">
+          <button type="button" class="btn btn-outline" data-prev>Retour</button>
+          <button type="button" class="btn btn-rouge" data-next>Continuer</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="4">
+        <div class="step-head">
+          <p class="step-kicker">Étape 4</p>
+          <p class="step-q">Nous aurons peut-être besoin de vous appeler. Avez-vous un numéro béninois à communiquer&nbsp;? Sinon un numéro WhatsApp.</p>
+        </div>
+        <div class="field">
+          <label for="phone">Téléphone / WhatsApp</label>
+          <input id="phone" name="phone" type="tel" required placeholder="ex. 01 XX XX XX XX" autocomplete="tel">
+        </div>
+        <div class="step-nav">
+          <button type="button" class="btn btn-outline" data-prev>Retour</button>
+          <button type="button" class="btn btn-rouge" data-next>Continuer</button>
+        </div>
+      </div>
+
+      <div class="step" data-step="5">
+        <div class="step-head">
+          <p class="step-kicker">Étape 5</p>
+          <p class="step-q">Une note pour nous&nbsp;? (optionnel)</p>
+        </div>
+        <div class="field">
+          <label for="notes">Note</label>
+          <textarea id="notes" name="notes" placeholder="Horaires, allergies, précisions…"></textarea>
+        </div>
+
+        <span style="display:block;font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;margin:.4rem 0 .55rem">Mode de paiement</span>
+        <div class="pay-options">
+          <label class="pay-option">
+            <input type="radio" name="paymentMethod" value="cash" checked>
+            <div>
+              <strong id="cashPayTitle">Espèces à la livraison</strong>
+              <span id="cashPayHint">Payez en cash lorsque votre commande arrive.</span>
+            </div>
+          </label>
+          <label class="pay-option" id="onlinePayOption">
+            <input type="radio" name="paymentMethod" value="online">
+            <div>
+              <strong>Paiement en ligne</strong>
+              <span>Carte ou Mobile Money via FedaPay (sécurisé).</span>
+            </div>
+          </label>
+        </div>
+
+        <div class="modal-summary">
+          <span>Total</span>
+          <span id="modalTotal" class="fmt">0 FCFA</span>
+        </div>
+        <div class="step-nav">
+          <button type="button" class="btn btn-outline" data-prev>Retour</button>
+          <button class="btn btn-rouge" type="submit" style="flex:1" id="submitBtn">Valider la commande</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
 
 <script src="/js/cart.js"></script>
 <script>
 const linesEl = document.getElementById('lines');
 const emptyEl = document.getElementById('empty');
 const totalEl = document.getElementById('total');
+const modalTotalEl = document.getElementById('modalTotal');
+const itemCountEl = document.getElementById('itemCount');
+const cartSummary = document.getElementById('cartSummary');
 const form = document.getElementById('orderForm');
 const formError = document.getElementById('formError');
+const overlay = document.getElementById('checkoutOverlay');
 const params = new URLSearchParams(location.search);
+let step = 1;
+
+function fulfillment(){
+  return form.fulfillment.value === 'pickup' ? 'pickup' : 'delivery';
+}
+
+function syncFulfillmentUI(){
+  const pick = fulfillment() === 'pickup';
+  document.getElementById('step3Question').textContent = pick
+    ? 'Où souhaitez-vous retirer votre commande ?'
+    : 'Quels détails fournir à notre livreur ?';
+  document.getElementById('cityLabel').textContent = pick ? 'Ville de retrait' : 'Ville';
+  document.getElementById('addressField').hidden = pick;
+  document.getElementById('pickupHint').hidden = !pick;
+  document.getElementById('address').required = !pick;
+  document.getElementById('cashPayTitle').textContent = pick ? 'Espèces au retrait' : 'Espèces à la livraison';
+  document.getElementById('cashPayHint').textContent = pick
+    ? 'Payez en cash lors du retrait en boutique.'
+    : 'Payez en cash lorsque votre commande arrive.';
+}
+
+function setStep(n){
+  step = Math.max(1, Math.min(5, n));
+  form.querySelectorAll('.step').forEach((el) => {
+    el.classList.toggle('is-on', Number(el.dataset.step) === step);
+  });
+  document.querySelectorAll('#stepDots span').forEach((dot, i) => {
+    dot.classList.toggle('on', i < step);
+  });
+  if (step === 3) syncFulfillmentUI();
+}
+
+function openCheckout(){
+  if (!Cart.read().length) return;
+  setStep(1);
+  formError.hidden = true;
+  overlay.classList.add('show');
+  overlay.setAttribute('aria-hidden', 'false');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeCheckout(){
+  overlay.classList.remove('show');
+  overlay.setAttribute('aria-hidden', 'true');
+  document.body.style.overflow = '';
+}
+
+function validateStep(n){
+  formError.hidden = true;
+  if (n === 2) {
+    if (!form.lastName.value.trim() || !form.firstName.value.trim()) {
+      formError.hidden = false;
+      formError.textContent = 'Indiquez le nom de la commande.';
+      return false;
+    }
+  }
+  if (n === 3) {
+    if (!form.city.value) {
+      formError.hidden = false;
+      formError.textContent = 'Choisissez une ville.';
+      return false;
+    }
+    if (fulfillment() === 'delivery' && !form.address.value.trim()) {
+      formError.hidden = false;
+      formError.textContent = 'Indiquez les détails pour le livreur.';
+      return false;
+    }
+  }
+  if (n === 4) {
+    if (!form.phone.value.trim()) {
+      formError.hidden = false;
+      formError.textContent = 'Indiquez un numéro de téléphone ou WhatsApp.';
+      return false;
+    }
+  }
+  return true;
+}
+
+form.addEventListener('click', (e) => {
+  if (e.target.closest('[data-next]')) {
+    if (!validateStep(step)) return;
+    setStep(step + 1);
+  }
+  if (e.target.closest('[data-prev]')) setStep(step - 1);
+});
+
+form.addEventListener('change', (e) => {
+  if (e.target.name === 'fulfillment') syncFulfillmentUI();
+});
+
+document.getElementById('finalizeBtn').addEventListener('click', openCheckout);
+document.getElementById('closeCheckout').addEventListener('click', closeCheckout);
+overlay.addEventListener('click', (e) => {
+  if (e.target === overlay) closeCheckout();
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && overlay.classList.contains('show')) closeCheckout();
+});
 
 function itemHref(i){
   if (i.type === 'coffret' || i.composition?.length || i.capacity) {
@@ -156,28 +404,41 @@ function itemHref(i){
 
 function render(){
   const items = Cart.read();
-  totalEl.textContent = Cart.formatPrice(Cart.total());
+  const totalTxt = Cart.formatPrice(Cart.total());
+  totalEl.textContent = totalTxt;
+  modalTotalEl.textContent = totalTxt;
+  itemCountEl.textContent = String(Cart.count());
+
   if(!items.length){
     linesEl.innerHTML = '';
     emptyEl.hidden = false;
-    form.querySelector('button').disabled = true;
+    cartSummary.hidden = true;
+    closeCheckout();
     return;
   }
   emptyEl.hidden = true;
-  form.querySelector('button').disabled = false;
+  cartSummary.hidden = false;
   linesEl.innerHTML = items.map(i => {
     const comp = (i.composition || []).map(c => `${escapeHtml(c.name)} ×${c.quantity}`).join(' · ');
     const flavors = i.flavors?.length && !comp ? i.flavors.map(escapeHtml).join(' · ') : '';
     const detail = comp || flavors;
     return `
     <div class="line" data-key="${escapeHtml(i.lineKey || i.productId)}">
-      <img src="${escapeHtml(i.image || '/uploads/placeholder-coffret12.svg')}" alt="">
+      <img src="${escapeHtml(
+        i.limitedEdition || Number(i.capacity) === 10
+          ? '/assets/edition-limitee.svg'
+          : i.image || '/uploads/placeholder-coffret12.svg'
+      )}" alt="">
       <div>
         <h3><a href="${itemHref(i)}">${escapeHtml(i.name)}</a></h3>
         <div class="meta">${Cart.formatPrice(i.price)} · unité${i.capacity ? ` · ${i.capacity} pièces` : ''}</div>
         ${detail ? `<div class="flavors">${detail}</div>` : ''}
         <div class="controls">
-          <input type="number" min="1" value="${i.quantity}" data-qty>
+          <div class="qty" role="group" aria-label="Quantité">
+            <button type="button" data-dec aria-label="Diminuer">−</button>
+            <span data-qty-val>${i.quantity}</span>
+            <button type="button" data-inc aria-label="Augmenter">+</button>
+          </div>
           <button type="button" data-remove>Retirer</button>
         </div>
       </div>
@@ -190,26 +451,42 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function showSuccess(msg){
+function showSuccess(msg, orderNumber){
+  closeCheckout();
   document.getElementById('checkout').hidden = true;
   const success = document.getElementById('success');
   success.classList.add('show');
   document.getElementById('successMsg').textContent = msg;
+  const orderEl = document.getElementById('successOrder');
+  if (orderNumber) {
+    orderEl.hidden = false;
+    orderEl.textContent = orderNumber;
+  } else {
+    orderEl.hidden = true;
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-linesEl.addEventListener('change', (e)=>{
-  const input = e.target.closest('[data-qty]');
-  if(!input) return;
-  const key = input.closest('.line').dataset.key;
-  Cart.setQty(key, Number(input.value)||1);
-  render();
-});
-
 linesEl.addEventListener('click', (e)=>{
-  const btn = e.target.closest('[data-remove]');
-  if(!btn) return;
-  Cart.remove(btn.closest('.line').dataset.key);
-  render();
+  const line = e.target.closest('.line');
+  if(!line) return;
+  const key = line.dataset.key;
+  const item = Cart.read().find((i) => (i.lineKey || i.productId) === key);
+  if(!item) return;
+  if(e.target.closest('[data-inc]')){
+    Cart.setQty(key, item.quantity + 1);
+    render();
+    return;
+  }
+  if(e.target.closest('[data-dec]')){
+    Cart.setQty(key, Math.max(1, item.quantity - 1));
+    render();
+    return;
+  }
+  if(e.target.closest('[data-remove]')){
+    Cart.remove(key);
+    render();
+  }
 });
 
 async function checkOnlineAvailability(){
@@ -227,7 +504,7 @@ async function checkOnlineAvailability(){
       if(!data.configured){
         hint.textContent = 'Indisponible pour le moment (configuration serveur).';
       } else if(!data.enabled){
-        hint.textContent = 'Temporairement désactivé par Macajou — choisissez le paiement à la livraison.';
+        hint.textContent = 'Temporairement désactivé par Macajou, choisissez le paiement à la livraison.';
       } else {
         hint.textContent = 'Indisponible pour le moment.';
       }
@@ -255,7 +532,10 @@ async function handlePaidReturn(){
   const success = document.getElementById('success');
   success.classList.add('show');
   const msg = document.getElementById('successMsg');
-  msg.textContent = `Paiement en cours de confirmation pour la commande ${orderNumber}…`;
+  const orderEl = document.getElementById('successOrder');
+  orderEl.hidden = false;
+  orderEl.textContent = orderNumber;
+  msg.textContent = `Paiement en cours de confirmation…`;
 
   try{
     await fetch(`/api/payments/fedapay/sync/${encodeURIComponent(orderNumber)}`, { method: 'POST' });
@@ -263,14 +543,14 @@ async function handlePaidReturn(){
     const data = await res.json();
     if(!res.ok) throw new Error(data.error || 'Commande introuvable');
     if(data.paymentStatus === 'paid'){
-      msg.textContent = `Paiement confirmé pour ${data.orderNumber}. Merci ! Nous préparons votre commande.`;
+      msg.textContent = `Paiement confirmé. Merci ! Nous préparons votre commande avec soin.`;
     } else if(data.paymentStatus === 'failed'){
-      msg.textContent = `Le paiement de ${data.orderNumber} n’a pas abouti. Vous pouvez réessayer depuis une nouvelle commande ou choisir le paiement à la livraison.`;
+      msg.textContent = `Le paiement n’a pas abouti. Vous pouvez réessayer ou choisir le paiement à la livraison.`;
     } else {
-      msg.textContent = `Commande ${data.orderNumber} enregistrée. Si vous venez de payer, la confirmation peut prendre quelques instants.`;
+      msg.textContent = `Commande enregistrée. Si vous venez de payer, la confirmation peut prendre quelques instants.`;
     }
   }catch(err){
-    msg.textContent = `Commande ${orderNumber} enregistrée. ${err.message}`;
+    msg.textContent = `Commande enregistrée. ${err.message}`;
   }
 }
 
@@ -279,8 +559,11 @@ form.addEventListener('submit', async (e)=>{
   formError.hidden = true;
   const items = Cart.read();
   if(!items.length) return;
+  if(!validateStep(4)) { setStep(4); return; }
+  if(fulfillment() === 'delivery' && !form.address.value.trim()){ setStep(3); validateStep(3); return; }
 
   const paymentMethod = form.paymentMethod.value === 'online' ? 'online' : 'cash';
+  const mode = fulfillment();
 
   const payload = {
     customer: {
@@ -288,8 +571,9 @@ form.addEventListener('submit', async (e)=>{
       lastName: form.lastName.value.trim(),
       phone: form.phone.value.trim(),
       city: form.city.value,
-      address: form.address.value.trim(),
+      address: mode === 'pickup' ? 'Retrait en boutique Macajou' : form.address.value.trim(),
       notes: form.notes.value.trim(),
+      fulfillment: mode,
     },
     paymentMethod,
     items: items.map(i => ({
@@ -323,8 +607,12 @@ form.addEventListener('submit', async (e)=>{
     }
 
     Cart.clear();
+    const where = mode === 'pickup'
+      ? `un retrait à ${payload.customer.city}`
+      : `une livraison à ${payload.customer.city}`;
     showSuccess(
-      `Commande ${order.orderNumber} enregistrée. Paiement à la livraison. Nous vous appelons au ${payload.customer.phone} pour confirmer à ${payload.customer.city}.`
+      `Nous vous appelons au ${payload.customer.phone} pour confirmer ${where}.`,
+      order.orderNumber
     );
   }catch(err){
     formError.hidden = false;
@@ -334,6 +622,8 @@ form.addEventListener('submit', async (e)=>{
   }
 });
 
+syncFulfillmentUI();
+setStep(1);
 render();
 checkOnlineAvailability();
 handlePaidReturn();

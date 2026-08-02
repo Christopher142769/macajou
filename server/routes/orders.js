@@ -59,6 +59,21 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ error: 'Ville invalide (Cotonou ou Calavi)' });
     }
 
+    const fulfillment = customer.fulfillment === 'pickup' ? 'pickup' : 'delivery';
+    const address =
+      fulfillment === 'pickup'
+        ? String(customer.address || '').trim() || 'Retrait en boutique Macajou'
+        : String(customer.address || '').trim();
+    if (fulfillment === 'delivery' && !address) {
+      return res.status(400).json({ error: 'Indiquez les détails pour le livreur' });
+    }
+    if (!String(customer.firstName || '').trim() || !String(customer.lastName || '').trim()) {
+      return res.status(400).json({ error: 'Indiquez le nom de la commande' });
+    }
+    if (!String(customer.phone || '').trim()) {
+      return res.status(400).json({ error: 'Indiquez un numéro de téléphone' });
+    }
+
     const paymentMethod = rawMethod === 'online' ? 'online' : 'cash';
     if (paymentMethod === 'online') {
       const settings = await getSettings();
@@ -128,8 +143,9 @@ router.post('/', async (req, res) => {
         lastName: customer.lastName,
         phone: customer.phone,
         city: customer.city,
-        address: customer.address,
+        address,
         notes: customer.notes || '',
+        fulfillment,
       },
       items: resolved,
       subtotal,

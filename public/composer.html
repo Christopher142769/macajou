@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="/assets/logo-macajou.png">
 <link rel="apple-touch-icon" href="/assets/logo-macajou.png">
-<title>Composer mon coffret — Macajou</title>
+<title>Composer mon coffret, Macajou</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -37,22 +37,54 @@
 .qty span{min-width:1.4rem;font-weight:500}
 .actions{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}
 .hint{font-size:.85rem;opacity:.7;margin-top:.9rem}
+.limited-note{font-size:.88rem;line-height:1.45;opacity:.78;border-left:2px solid var(--rouge);padding-left:.85rem;margin:.2rem 0 .9rem;max-width:46ch}
 .error-box{padding:4rem 0;text-align:center;font-family:var(--display);font-size:1.4rem}
+.after-add{position:fixed;inset:0;z-index:300;background:rgba(28,22,17,.45);display:grid;place-items:center;padding:1.2rem;opacity:0;pointer-events:none;transition:opacity .25s}
+.after-add.show{opacity:1;pointer-events:auto}
+.after-add-card{background:var(--creme);border:1px solid var(--line);padding:2rem 1.6rem;max-width:420px;width:100%;text-align:center}
+.after-add-eyebrow{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--brun);margin-bottom:.55rem}
+.after-add-card h2{font-family:var(--display);font-weight:500;font-size:1.65rem;text-transform:uppercase;letter-spacing:.03em;margin-bottom:.55rem}
+.after-add-lead{opacity:.75;line-height:1.5;margin-bottom:1.4rem;font-size:.95rem}
+.after-add-actions{display:flex;flex-direction:column;gap:.65rem}
+.after-add-close{margin-top:1rem;background:none;border:none;text-decoration:underline;cursor:pointer;font:inherit;opacity:.65;font-size:.88rem}
 @media(max-width:900px){
   .compose{grid-template-columns:1fr;gap:1.6rem}
   .compose-visual{position:static;aspect-ratio:5/4}
+  .mac-grid{
+    display:flex;
+    flex-wrap:nowrap;
+    gap:.85rem;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:x mandatory;
+    padding:0 .15rem .65rem;
+    margin-bottom:1.2rem;
+    scrollbar-width:thin;
+  }
+  .mac-grid::-webkit-scrollbar{height:4px}
+  .mac-grid::-webkit-scrollbar-thumb{background:rgba(28,22,17,.25)}
+  .mac-card{
+    flex:0 0 148px;
+    width:148px;
+    scroll-snap-align:start;
+  }
+  .mac-card .name{min-height:2.6em;font-size:.85rem}
 }
 </style>
 </head>
 <body>
-<div class="shop-top">Composez votre coffret — capacité stricte</div>
+<div class="shop-top">Composez votre coffret, capacité stricte</div>
 <header class="shop-nav">
   <nav class="links left">
+    <a href="/">← Accueil</a>
     <a href="/#collection">Coffrets</a>
-    <a href="/">Accueil</a>
   </nav>
-  <a class="logo" href="/">Macajou</a>
+  <a class="logo" href="/" aria-label="Macajou, Accueil">
+    <img src="/assets/logo-macajou.png" alt="Macajou">
+  </a>
   <nav class="links right">
+    <a class="shop-home" href="/">Retour à l’accueil</a>
     <a href="/panier.html" class="cart-link">
       Panier
       <span class="cart-count" data-cart-count hidden>0</span>

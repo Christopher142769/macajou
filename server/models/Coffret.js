@@ -19,6 +19,7 @@ const coffretSchema = new mongoose.Schema(
     badge: { type: String, default: '' },
     active: { type: Boolean, default: true },
     featured: { type: Boolean, default: false },
+    limitedEdition: { type: Boolean, default: false },
     order: { type: Number, default: 0 },
   },
   { timestamps: true }

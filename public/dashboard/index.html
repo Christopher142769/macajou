@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="/assets/logo-macajou.png">
 <link rel="apple-touch-icon" href="/assets/logo-macajou.png">
-<title>Dashboard — Macajou Gourmandises</title>
+<title>Dashboard, Macajou Gourmandises</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@300;400;500;600&family=Pinyon+Script&display=swap" rel="stylesheet">
@@ -82,6 +82,10 @@
       <button type="button" data-tab="macajoux" data-title="Macajoux">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="3"/></svg>
         <span>Macajoux</span>
+      </button>
+      <button type="button" data-tab="club" data-title="Club Macajou">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 21s-7-4.5-7-10a4 4 0 017-3 4 4 0 017 3c0 5.5-7 10-7 10z"/></svg>
+        <span>Club Macajou</span>
       </button>
       <button type="button" data-tab="categories" data-title="Catégories">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg>
@@ -194,27 +198,27 @@
         <div class="stat-grid stat-grid-6">
           <article class="stat-card">
             <div class="stat-ic ic-rouge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statProducts">—</span><span class="stat-lbl">Produits publiés</span><div class="stat-spark" id="sparkProducts"></div></div>
+            <div class="stat-body"><span class="stat-num" id="statProducts">, </span><span class="stat-lbl">Produits publiés</span><div class="stat-spark" id="sparkProducts"></div></div>
           </article>
           <article class="stat-card">
             <div class="stat-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 6h16l-1.3 13.2a2 2 0 01-2 1.8H7.3a2 2 0 01-2-1.8L4 6z"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statOrders">—</span><span class="stat-lbl">Commandes</span><div class="stat-spark" id="sparkOrders"></div></div>
+            <div class="stat-body"><span class="stat-num" id="statOrders">, </span><span class="stat-lbl">Commandes</span><div class="stat-spark" id="sparkOrders"></div></div>
           </article>
           <article class="stat-card">
             <div class="stat-ic ic-brun"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statRevenue">—</span><span class="stat-lbl">Chiffre d’affaires</span><div class="stat-spark" id="sparkRevenue"></div></div>
+            <div class="stat-body"><span class="stat-num" id="statRevenue">, </span><span class="stat-lbl">Chiffre d’affaires</span><div class="stat-spark" id="sparkRevenue"></div></div>
           </article>
           <article class="stat-card">
             <div class="stat-ic ic-encre"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statReservations">—</span><span class="stat-lbl">Réservations</span></div>
+            <div class="stat-body"><span class="stat-num" id="statReservations">, </span><span class="stat-lbl">Réservations</span></div>
           </article>
           <article class="stat-card">
             <div class="stat-ic ic-rouge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statBasket">—</span><span class="stat-lbl">Panier moyen</span></div>
+            <div class="stat-body"><span class="stat-num" id="statBasket">, </span><span class="stat-lbl">Panier moyen</span></div>
           </article>
           <article class="stat-card">
             <div class="stat-ic ic-gold"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10"/></svg></div>
-            <div class="stat-body"><span class="stat-num" id="statItems">—</span><span class="stat-lbl">Articles vendus</span></div>
+            <div class="stat-body"><span class="stat-num" id="statItems">, </span><span class="stat-lbl">Articles vendus</span></div>
           </article>
         </div>
 
@@ -337,9 +341,11 @@
               <div class="field check">
                 <label><input type="checkbox" id="pActive" checked> Actif</label>
                 <label><input type="checkbox" id="pFeatured"> Mis en avant</label>
+                <label><input type="checkbox" id="pLimited"> Édition limitée</label>
                 <label><input type="checkbox" id="pInStock" checked> En stock</label>
               </div>
             </div>
+            <p class="field-hint" style="font-size:.85rem;opacity:.7;margin:-.4rem 0 1rem;line-height:1.4">Édition limitée : affichage spécial (logo + message occasions), hors packaging classique.</p>
             <p id="productError" class="err" hidden></p>
             <div class="dialog-actions">
               <button type="button" class="btn btn-ghost" id="cancelProduct2">Annuler</button>
@@ -354,7 +360,7 @@
         <div class="section-head">
           <div>
             <h2 class="section-title">Coffrets</h2>
-            <p class="section-sub">Formats 4, 8, 10, 16 ou 18 macajoux — nom, capacité et prix.</p>
+            <p class="section-sub">Formats 4, 8, 10, 16 ou 18 macajoux. Cochez « Sélection du jour » pour l’afficher en e-shop.</p>
           </div>
           <button type="button" class="btn btn-primary" id="newCoffretBtn">＋ Nouveau coffret</button>
         </div>
@@ -394,9 +400,11 @@
               <div class="field"><label>Ordre d’affichage</label><input id="cOrder" type="number" value="0"></div>
               <div class="field check">
                 <label><input type="checkbox" id="cActive" checked> Actif</label>
-                <label><input type="checkbox" id="cFeatured"> Mis en avant</label>
+                <label><input type="checkbox" id="cFeatured"> Sélection du jour</label>
+                <label><input type="checkbox" id="cLimited"> Édition limitée</label>
               </div>
             </div>
+            <p class="field-hint" style="font-size:.85rem;opacity:.7;margin:-.4rem 0 1rem;line-height:1.4">Sélection du jour : un seul coffret. Édition limitée : même présentation spéciale (logo + occasions), hors packaging classique.</p>
             <p id="coffretError" class="err" hidden></p>
             <div class="dialog-actions">
               <button type="button" class="btn btn-ghost" id="cancelCoffret2">Annuler</button>
@@ -440,6 +448,91 @@
             <p id="macajouError" class="err" hidden></p>
             <div class="dialog-actions">
               <button type="button" class="btn btn-ghost" id="cancelMacajou2">Annuler</button>
+              <button type="submit" class="btn btn-primary">Enregistrer</button>
+            </div>
+          </form>
+        </dialog>
+      </section>
+
+      <!-- CLUB MACAJOU -->
+      <section id="tab-club" class="tab">
+        <div class="section-head">
+          <div>
+            <h2 class="section-title">Club Macajou</h2>
+            <p class="section-sub">Événements, coming soon et actualités affichés sur la landing et en pop-up.</p>
+          </div>
+          <button type="button" class="btn btn-primary" id="newClubBtn">＋ Nouvelle publication</button>
+        </div>
+        <div id="clubGrid" class="cards"></div>
+        <div class="section-head" style="margin-top:2.5rem">
+          <div>
+            <h2 class="section-title">Confirmations de présence</h2>
+            <p class="section-sub">Inscriptions aux événements via le site.</p>
+          </div>
+        </div>
+        <div class="panel" style="overflow-x:auto">
+          <table class="data-table" id="clubRsvpsTable">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Événement</th>
+                <th>Prénom</th>
+                <th>Nom</th>
+                <th>E-mail</th>
+                <th>Téléphone</th>
+              </tr>
+            </thead>
+            <tbody id="clubRsvpsBody">
+              <tr><td colspan="6" class="empty-state">Chargement…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <dialog id="clubDialog">
+          <form method="dialog" id="clubForm" class="dialog-form">
+            <div class="dialog-head">
+              <h3 id="clubDialogTitle">Publication Club</h3>
+              <button type="button" class="icon-btn" id="cancelClub" aria-label="Fermer">✕</button>
+            </div>
+            <input type="hidden" id="clubId">
+            <div class="grid2">
+              <div class="field">
+                <label>Type</label>
+                <select id="clubType" required>
+                  <option value="event">Événement</option>
+                  <option value="coming_soon">Coming soon</option>
+                  <option value="news">Actualité</option>
+                </select>
+              </div>
+              <div class="field"><label>Ordre</label><input id="clubOrder" type="number" value="0"></div>
+            </div>
+            <div class="field"><label>Titre</label><input id="clubTitle" required placeholder="Soirée découverte Macajou"></div>
+            <div class="field"><label>Accroche (pop-up / carte)</label><textarea id="clubExcerpt" rows="2" placeholder="Texte court visible en pop-up"></textarea></div>
+            <div class="field">
+              <label>Contenu complet</label>
+              <textarea id="clubBody" rows="5" placeholder="Texte détaillé. Utilisez **gras** pour mettre en valeur."></textarea>
+              <small class="field-hint">Astuce : entourez un mot de **double astérisques** pour le mettre en gras.</small>
+            </div>
+            <div class="field">
+              <label>Image</label>
+              <input type="file" id="clubFile" accept="image/*">
+              <button type="button" class="btn btn-ghost btn-sm media-picker-btn" id="pickClubImage">Choisir dans la galerie</button>
+              <div id="clubImagePreview" class="preview"></div>
+            </div>
+            <div id="clubEventFields" class="grid2">
+              <div class="field"><label>Date de l'événement</label><input id="clubEventDate" type="datetime-local"></div>
+              <div class="field"><label>Lieu</label><input id="clubEventLocation" placeholder="Boutique Macajou, Cotonou"></div>
+            </div>
+            <div class="grid2">
+              <div class="field check">
+                <label><input type="checkbox" id="clubShowPopup" checked> Pop-up à l'arrivée sur le site</label>
+              </div>
+              <div class="field check">
+                <label><input type="checkbox" id="clubActive" checked> Visible sur le site</label>
+              </div>
+            </div>
+            <p id="clubError" class="err" hidden></p>
+            <div class="dialog-actions">
+              <button type="button" class="btn btn-ghost" id="cancelClub2">Annuler</button>
               <button type="submit" class="btn btn-primary">Enregistrer</button>
             </div>
           </form>

@@ -15,6 +15,9 @@ function normalizeBody(body) {
   data.slug = data.slug || toSlug(data.name || '');
   data.capacity = Number(data.capacity);
   data.price = Number(data.price);
+  if (data.featured != null) data.featured = !!data.featured;
+  if (data.limitedEdition != null) data.limitedEdition = !!data.limitedEdition;
+  if (data.active != null) data.active = !!data.active;
   if (data.images && typeof data.images === 'string') {
     try {
       data.images = JSON.parse(data.images);
@@ -27,6 +30,13 @@ function normalizeBody(body) {
   }
   if (data.image && (!data.images || !data.images.length)) {
     data.images = [data.image];
+  }
+  if (data.limitedEdition) {
+    if (!data.badge) data.badge = 'Édition limitée';
+    if (!data.shortDescription) {
+      data.shortDescription =
+        'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).';
+    }
   }
   return data;
 }
@@ -83,6 +93,9 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Nom et prix requis' });
     }
     const item = await Coffret.create(data);
+    if (item.featured) {
+      await Coffret.updateMany({ _id: { $ne: item._id } }, { $set: { featured: false } });
+    }
     res.status(201).json(item);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -100,6 +113,9 @@ router.put('/:id', requireAuth, async (req, res) => {
       runValidators: true,
     });
     if (!item) return res.status(404).json({ error: 'Coffret introuvable' });
+    if (item.featured) {
+      await Coffret.updateMany({ _id: { $ne: item._id } }, { $set: { featured: false } });
+    }
     res.json(item);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -118,29 +134,57 @@ router.delete('/:id', requireAuth, async (req, res) => {
 
 async function ensureDefaults() {
   const count = await Coffret.countDocuments();
-  if (count > 0) return;
-  const defaults = [
-    { capacity: 4, price: 3500, badge: 'Découverte' },
-    { capacity: 8, price: 6500, badge: 'Essentiel' },
-    { capacity: 10, price: 8000, badge: 'Signature' },
-    { capacity: 16, price: 12000, badge: 'Partage' },
-    { capacity: 18, price: 13500, badge: 'Grande fête' },
-  ];
-  for (let i = 0; i < defaults.length; i++) {
-    const d = defaults[i];
-    const name = `Coffret de ${d.capacity}`;
-    await Coffret.create({
-      name,
-      slug: toSlug(name),
-      capacity: d.capacity,
-      price: d.price,
-      badge: d.badge,
-      shortDescription: `${d.capacity} macajoux à composer selon vos envies.`,
-      order: i,
-      featured: true,
-      active: true,
-    });
+  if (count === 0) {
+    const defaults = [
+      { capacity: 4, price: 3500, badge: 'Découverte', desc: '4 macajoux à composer selon vos envies.', featured: true },
+      { capacity: 8, price: 6500, badge: 'Essentiel', desc: '8 macajoux à composer selon vos envies.', featured: true },
+      {
+        capacity: 10,
+        price: 8000,
+        badge: 'Édition limitée',
+        desc: 'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).',
+        featured: false,
+        limitedEdition: true,
+        image: '/assets/edition-limitee.svg',
+      },
+      { capacity: 16, price: 12000, badge: 'Partage', desc: '16 macajoux à composer selon vos envies.', featured: false },
+      { capacity: 18, price: 13500, badge: 'Grande fête', desc: '18 macajoux à composer selon vos envies.', featured: false },
+    ];
+    for (let i = 0; i < defaults.length; i++) {
+      const d = defaults[i];
+      const name = `Coffret de ${d.capacity}`;
+      await Coffret.create({
+        name,
+        slug: toSlug(name),
+        capacity: d.capacity,
+        price: d.price,
+        badge: d.badge,
+        shortDescription: d.desc,
+        image: d.image || '',
+        images: d.image ? [d.image] : [],
+        order: i,
+        featured: d.featured,
+        limitedEdition: !!d.limitedEdition,
+        active: true,
+      });
+    }
   }
+
+  // Coffret 10 historique → édition limitée (sans écraser un décochage volontaire)
+  await Coffret.updateMany(
+    {
+      capacity: 10,
+      $or: [{ limitedEdition: { $exists: false } }, { limitedEdition: null }],
+    },
+    {
+      $set: {
+        limitedEdition: true,
+        badge: 'Édition limitée',
+        shortDescription:
+          'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).',
+      },
+    }
+  );
 }
 
 module.exports = router;

@@ -5,3 +5,6 @@ uploads/*
 data/
 *.log
 .DS_Store
+
+!uploads/placeholder-edition-limitee.svg
+!uploads/placeholder-coffret10-limitee.svg

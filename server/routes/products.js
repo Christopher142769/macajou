@@ -60,6 +60,15 @@ router.post('/', requireAuth, async (req, res) => {
   try {
     const body = { ...req.body };
     body.slug = body.slug || toSlug(body.name);
+    body.featured = !!body.featured;
+    body.limitedEdition = !!body.limitedEdition;
+    body.active = body.active !== false;
+    body.inStock = body.inStock !== false;
+    if (body.limitedEdition && !body.badge) body.badge = 'Édition limitée';
+    if (body.limitedEdition && !body.shortDescription) {
+      body.shortDescription =
+        'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).';
+    }
     await validateCategory(body.category);
     if (typeof body.flavors === 'string') {
       try {
@@ -86,6 +95,17 @@ router.put('/:id', requireAuth, async (req, res) => {
   try {
     const body = { ...req.body };
     if (body.name && !body.slug) body.slug = toSlug(body.name);
+    if (body.featured != null) body.featured = !!body.featured;
+    if (body.limitedEdition != null) body.limitedEdition = !!body.limitedEdition;
+    if (body.active != null) body.active = !!body.active;
+    if (body.inStock != null) body.inStock = !!body.inStock;
+    if (body.limitedEdition) {
+      if (!body.badge) body.badge = 'Édition limitée';
+      if (!body.shortDescription) {
+        body.shortDescription =
+          'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).';
+      }
+    }
     if (body.category) await validateCategory(body.category);
     if (typeof body.flavors === 'string') {
       try {

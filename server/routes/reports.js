@@ -346,7 +346,7 @@ async function writeWord(res, report) {
     new Table({ rows, width: { size: 100, type: WidthType.PERCENTAGE } }),
     new Paragraph({ text: 'Produits', heading: HeadingLevel.HEADING_1 }),
     ...report.topProducts.map(
-      (p) => new Paragraph({ text: `${p.name} — ${p.quantity} vendu(s) — ${money(p.revenue)}` })
+      (p) => new Paragraph({ text: `${p.name}, ${p.quantity} vendu(s), ${money(p.revenue)}` })
     ),
     new Paragraph({ text: 'Commandes détaillées', heading: HeadingLevel.HEADING_1 }),
     ...report.orders.map(
