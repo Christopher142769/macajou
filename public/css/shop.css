@@ -48,8 +48,12 @@ button,input,select,textarea{font:inherit}
 .toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(20px);background:var(--encre);color:var(--creme);padding:.8rem 1.4rem;font-size:.85rem;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s;z-index:200;letter-spacing:.04em}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:860px){
-  .shop-nav{grid-template-columns:1fr auto;padding:1rem}
+  .shop-nav{grid-template-columns:auto 1fr auto;padding:.75rem 1rem;gap:.5rem}
   .shop-nav .links.left{display:none}
-  .shop-nav .logo img{height:58px}
-  .shop-wrap{padding:1.5rem 1.1rem 4rem}
+  .shop-nav .logo{justify-self:center}
+  .shop-nav .logo img{height:52px}
+  .shop-nav .shop-home{display:none}
+  .shop-nav .links.right{gap:.6rem}
+  .shop-wrap{padding:1.25rem 1.1rem 4rem}
+  body{overflow-x:hidden}
 }

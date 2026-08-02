@@ -165,12 +165,13 @@
             <strong class="${over ? 'over' : full ? 'ok' : ''}">${used} / ${coffret.capacity}</strong>
           </div>
           <div class="meter-bar"><span style="width:${pct}%"></span></div>
-          <div style="font-size:.85rem;opacity:.75;min-width:7rem;text-align:right">
+          <div class="meter-rest">
             ${over ? 'Trop plein' : full ? 'Complet ✓' : `Reste ${left}`}
           </div>
         </div>
 
         <span class="field-label">Macajoux</span>
+        <p class="mac-scroll-hint">Glissez pour voir toutes les saveurs →</p>
         <div class="mac-grid" id="macGrid">
           ${macajoux
             .map((m) => {

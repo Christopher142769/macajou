@@ -299,19 +299,36 @@
 
   function wireNotifBanner() {
     const banner = document.getElementById('clubNotifAsk');
-    if (!banner) return;
-    banner.querySelector('[data-notif-yes]')?.addEventListener('click', async () => {
+    if (!banner || banner.dataset.wired === '1') return;
+    banner.dataset.wired = '1';
+
+    async function accept() {
       localStorage.setItem(NOTIF_KEY, 'yes');
       banner.hidden = true;
       try {
-        if ('Notification' in window) await Notification.requestPermission();
+        if ('Notification' in window && Notification.permission === 'default') {
+          await Notification.requestPermission();
+        }
       } catch (_) {}
       maybeShowPendingPopup();
-    });
-    banner.querySelector('[data-notif-no]')?.addEventListener('click', () => {
+    }
+
+    function decline() {
       localStorage.setItem(NOTIF_KEY, 'no');
       banner.hidden = true;
       maybeShowPendingPopup();
+    }
+
+    banner.addEventListener('click', (e) => {
+      const yes = e.target.closest('[data-notif-yes]');
+      const no = e.target.closest('[data-notif-no]');
+      if (yes) {
+        e.preventDefault();
+        accept();
+      } else if (no) {
+        e.preventDefault();
+        decline();
+      }
     });
   }
 
