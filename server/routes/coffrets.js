@@ -93,9 +93,6 @@ router.post('/', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Nom et prix requis' });
     }
     const item = await Coffret.create(data);
-    if (item.featured) {
-      await Coffret.updateMany({ _id: { $ne: item._id } }, { $set: { featured: false } });
-    }
     res.status(201).json(item);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -113,9 +110,6 @@ router.put('/:id', requireAuth, async (req, res) => {
       runValidators: true,
     });
     if (!item) return res.status(404).json({ error: 'Coffret introuvable' });
-    if (item.featured) {
-      await Coffret.updateMany({ _id: { $ne: item._id } }, { $set: { featured: false } });
-    }
     res.json(item);
   } catch (err) {
     res.status(400).json({ error: err.message });

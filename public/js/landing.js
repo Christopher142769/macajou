@@ -1,6 +1,7 @@
 /** Landing — sélection du jour + grille à composer */
 (function () {
   let coffrets = [];
+  let featuredProducts = [];
 
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, (c) =>
@@ -17,15 +18,19 @@
     return '/composer.html?slug=' + encodeURIComponent(slug);
   }
 
-  const LIMITED_IMG = '/assets/edition-limitee.svg';
-
-  function isLimited(c) {
-    return !!(c && (c.limitedEdition || Number(c.capacity) === 10));
+  function productUrl(slug) {
+    return '/produit.html?slug=' + encodeURIComponent(slug);
   }
 
-  function imageFor(c) {
-    if (isLimited(c)) return LIMITED_IMG;
-    return c.image || (c.images && c.images[0]) || '/uploads/placeholder-coffret12.svg';
+  const LIMITED_IMG = '/assets/edition-limitee.svg';
+
+  function isLimited(item) {
+    return !!(item && (item.limitedEdition || Number(item.capacity) === 10));
+  }
+
+  function imageFor(item) {
+    if (isLimited(item)) return LIMITED_IMG;
+    return item.image || (item.images && item.images[0]) || '/uploads/placeholder-coffret12.svg';
   }
 
   function ensureCartScript(cb) {
@@ -57,8 +62,12 @@
     window.Cart && window.Cart.updateBadges();
   }
 
-  function pickDayCoffret() {
-    return coffrets.find((c) => c.featured) || null;
+  function daySelection() {
+    const days = [
+      ...coffrets.filter((c) => c.featured).map((c) => ({ kind: 'coffret', item: c })),
+      ...featuredProducts.map((p) => ({ kind: 'product', item: p })),
+    ];
+    return days;
   }
 
   async function onTrustClick(coffretId, btn) {
@@ -81,7 +90,29 @@
     }
   }
 
-  function cardHtml(c, i, opts = {}) {
+  async function onAddProduct(productId, btn) {
+    const product = featuredProducts.find((p) => String(p._id) === String(productId));
+    if (!product || !window.Cart?.add) return;
+    const prev = btn?.textContent;
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = '…';
+    }
+    try {
+      window.Cart.add(product, 1);
+      window.Cart.toast('Ajouté au panier');
+      window.Cart.showAfterAddChoice?.();
+    } catch (err) {
+      window.Cart.toast(err.message || 'Impossible d’ajouter');
+    } finally {
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = prev || 'Ajouter au panier';
+      }
+    }
+  }
+
+  function coffretCardHtml(c, i, opts = {}) {
     const href = composerUrl(c.slug);
     const delay = i % 3 === 0 ? '' : i % 3 === 1 ? ' d1' : ' d2';
     const isDay = !!opts.isDay;
@@ -117,11 +148,46 @@
     </article>`;
   }
 
-  function renderDayPick(day) {
+  function productCardHtml(p, i) {
+    const href = productUrl(p.slug);
+    const delay = i % 3 === 0 ? '' : i % 3 === 1 ? ' d1' : ' d2';
+    const limited = isLimited(p);
+    const badge = 'Sélection du jour';
+    return `<article class="coffret-card reveal${delay} in">
+      <a class="coffret-card-link" href="${esc(href)}">
+        <div class="coffret-card-media">
+          <span class="coffret-badge is-day">${esc(badge)}</span>
+          <img src="${esc(imageFor(p))}" alt="${esc(p.name)}" loading="lazy">
+          <div class="coffret-card-glow" aria-hidden="true"></div>
+        </div>
+        <div class="coffret-card-body">
+          <h3>${esc(p.name)}</h3>
+          ${p.category ? `<p class="coffret-count">${esc(p.category)}</p>` : ''}
+          ${
+            limited
+              ? `<p class="coffret-desc">Édition limitée pour les occasions — emballage spécial, hors packaging Macajou classique.</p>`
+              : p.shortDescription
+                ? `<p class="coffret-desc">${esc(p.shortDescription)}</p>`
+                : ''
+          }
+        </div>
+      </a>
+      <div class="coffret-foot">
+        <strong class="coffret-price">${esc(formatPrice(p.price))}</strong>
+        <div class="coffret-ctas">
+          <button type="button" class="coffret-cta is-trust" data-add-product="${esc(p._id)}">Ajouter au panier</button>
+          <a class="coffret-cta" href="${esc(href)}">Voir</a>
+        </div>
+      </div>
+    </article>`;
+  }
+
+  function renderDayPick() {
     const el = document.getElementById('dayPick');
     const head = document.getElementById('dayHead');
     if (!el) return;
-    if (!day) {
+    const days = daySelection();
+    if (!days.length) {
       el.hidden = true;
       el.innerHTML = '';
       if (head) head.hidden = true;
@@ -129,17 +195,29 @@
     }
     el.hidden = false;
     el.className = 'coffret-grid is-day reveal in';
-    el.innerHTML = cardHtml(day, 0, { isDay: true });
+    el.innerHTML = days
+      .map((d, i) =>
+        d.kind === 'product' ? productCardHtml(d.item, i) : coffretCardHtml(d.item, i, { isDay: true })
+      )
+      .join('');
     if (head) head.hidden = false;
   }
 
-  function wireTrustButtons(root) {
+  function wireDayActions(root) {
     root?.addEventListener('click', (e) => {
-      const btn = e.target.closest('[data-trust]');
-      if (!btn) return;
-      e.preventDefault();
-      e.stopPropagation();
-      onTrustClick(btn.getAttribute('data-trust'), btn);
+      const trust = e.target.closest('[data-trust]');
+      if (trust) {
+        e.preventDefault();
+        e.stopPropagation();
+        onTrustClick(trust.getAttribute('data-trust'), trust);
+        return;
+      }
+      const add = e.target.closest('[data-add-product]');
+      if (add) {
+        e.preventDefault();
+        e.stopPropagation();
+        onAddProduct(add.getAttribute('data-add-product'), add);
+      }
     });
   }
 
@@ -149,7 +227,7 @@
     if (!zone) return;
 
     if (!coffrets.length) {
-      renderDayPick(null);
+      renderDayPick();
       if (composeHead) composeHead.hidden = true;
       zone.className = 'prod-zone';
       zone.innerHTML =
@@ -157,11 +235,11 @@
       return;
     }
 
-    renderDayPick(pickDayCoffret());
+    renderDayPick();
     if (composeHead) composeHead.hidden = false;
 
     zone.className = 'coffret-grid';
-    zone.innerHTML = coffrets.map((c, i) => cardHtml(c, i)).join('');
+    zone.innerHTML = coffrets.map((c, i) => coffretCardHtml(c, i)).join('');
   }
 
   function wireComposeCtas() {
@@ -186,17 +264,21 @@
     }
   }
 
-  async function loadCoffrets() {
+  async function loadCatalog() {
     const zone = document.getElementById('prodZone');
     try {
-      const res = await fetch('/api/coffrets');
-      if (!res.ok) throw new Error('API coffrets indisponible');
-      coffrets = await res.json();
+      const [cRes, pRes] = await Promise.all([
+        fetch('/api/coffrets'),
+        fetch('/api/products?featured=1'),
+      ]);
+      if (!cRes.ok) throw new Error('API coffrets indisponible');
+      coffrets = await cRes.json();
+      featuredProducts = pRes.ok ? await pRes.json() : [];
       renderCoffrets();
       maybeScrollToCoffrets();
     } catch (err) {
       console.error(err);
-      renderDayPick(null);
+      renderDayPick();
       const composeHead = document.getElementById('composeHead');
       if (composeHead) composeHead.hidden = true;
       if (zone) {
@@ -211,9 +293,9 @@
     ensureCartScript(() => {
       wireCartBadge();
       wireComposeCtas();
-      wireTrustButtons(document.getElementById('dayPick'));
-      wireTrustButtons(document.getElementById('prodZone'));
-      loadCoffrets();
+      wireDayActions(document.getElementById('dayPick'));
+      wireDayActions(document.getElementById('prodZone'));
+      loadCatalog();
     });
   }
 

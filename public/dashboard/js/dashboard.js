@@ -900,8 +900,8 @@ async function loadProducts() {
       <div class="body">
         <h3>${escapeHtml(p.name)}</h3>
         <div class="meta">${formatPrice(p.price)} · ${escapeHtml(p.category)} · ${p.active ? 'Actif' : 'Masqué'}${
-          p.limitedEdition ? ' · Édition limitée' : ''
-        }</div>
+          p.featured ? ' · ★ Sélection du jour' : ''
+        }${p.limitedEdition ? ' · Édition limitée' : ''}</div>
         <div class="actions">
           <button type="button" data-edit="${p._id}">Modifier</button>
           <button type="button" data-del="${p._id}">Supprimer</button>
