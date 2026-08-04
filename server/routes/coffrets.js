@@ -139,7 +139,7 @@ async function ensureDefaults() {
         desc: 'Édition limitée pour les occasions — emballage spécial (hors packaging Macajou classique).',
         featured: false,
         limitedEdition: true,
-        image: '/assets/edition-limitee.svg',
+        image: '',
       },
       { capacity: 16, price: 12000, badge: 'Partage', desc: '16 macajoux à composer selon vos envies.', featured: false },
       { capacity: 18, price: 13500, badge: 'Grande fête', desc: '18 macajoux à composer selon vos envies.', featured: false },
@@ -179,6 +179,13 @@ async function ensureDefaults() {
       },
     }
   );
+
+  // Ne plus forcer l'illustration SVG : garder la vraie photo du coffret / produit
+  const limitedArt = '/assets/edition-limitee.svg';
+  await Coffret.updateMany({ image: limitedArt }, { $set: { image: '' } });
+  await Coffret.updateMany({ images: limitedArt }, { $pull: { images: limitedArt } });
+  const Product = require('../models/Product');
+  await Product.updateMany({ images: limitedArt }, { $pull: { images: limitedArt } });
 }
 
 module.exports = router;

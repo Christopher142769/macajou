@@ -284,7 +284,7 @@ h1{font-family:var(--display);font-weight:500;font-size:clamp(2rem,4vw,3rem);tex
   </div>
 </div>
 
-<script src="/js/cart.js"></script>
+<script src="/js/cart.js?v=20260804-limited-photo"></script>
 <script>
 const linesEl = document.getElementById('lines');
 const emptyEl = document.getElementById('empty');
@@ -424,11 +424,7 @@ function render(){
     const detail = comp || flavors;
     return `
     <div class="line" data-key="${escapeHtml(i.lineKey || i.productId)}">
-      <img src="${escapeHtml(
-        i.limitedEdition || Number(i.capacity) === 10
-          ? '/assets/edition-limitee.svg'
-          : i.image || '/uploads/placeholder-coffret12.svg'
-      )}" alt="">
+      <img src="${escapeHtml(i.image || '/uploads/placeholder-coffret12.svg')}" alt="">
       <div>
         <h3><a href="${itemHref(i)}">${escapeHtml(i.name)}</a></h3>
         <div class="meta">${Cart.formatPrice(i.price)} · unité${i.capacity ? ` · ${i.capacity} pièces` : ''}</div>

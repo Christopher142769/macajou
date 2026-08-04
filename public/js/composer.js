@@ -119,9 +119,8 @@
     document.title = `${coffret.name} ,  Composer Macajou`;
 
     const limited = !!(coffret.limitedEdition || Number(coffret.capacity) === 10);
-    const img = limited
-      ? '/assets/edition-limitee.svg'
-      : coffret.image || coffret.images?.[0] || '/uploads/placeholder-coffret12.svg';
+    const img =
+      coffret.image || coffret.images?.[0] || '/uploads/placeholder-coffret12.svg';
     const used = totalPieces();
     const left = remaining();
     const full = used === coffret.capacity;

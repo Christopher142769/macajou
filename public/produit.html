@@ -76,7 +76,7 @@
   <div id="pdp" class="pdp" hidden></div>
 </main>
 
-<script src="/js/cart.js"></script>
+<script src="/js/cart.js?v=20260804-limited-photo"></script>
 <script>
 const params = new URLSearchParams(location.search);
 const slug = params.get('slug');
@@ -114,10 +114,10 @@ function render(){
   root.hidden = false;
   document.title = product.name + ' ,  Macajou';
   const limited = !!product.limitedEdition;
-  const images = limited
-    ? ['/assets/edition-limitee.svg']
-    : product.images?.length
-      ? product.images
+  const images = product.images?.length
+    ? product.images
+    : product.image
+      ? [product.image]
       : ['/uploads/placeholder-coffret12.svg'];
   const flavors = product.flavors || [];
   const badge = limited ? 'Édition limitée' : product.badge;

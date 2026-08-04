@@ -22,14 +22,11 @@
     return '/produit.html?slug=' + encodeURIComponent(slug);
   }
 
-  const LIMITED_IMG = '/assets/edition-limitee.svg';
-
   function isLimited(item) {
     return !!(item && (item.limitedEdition || Number(item.capacity) === 10));
   }
 
   function imageFor(item) {
-    if (isLimited(item)) return LIMITED_IMG;
     return item.image || (item.images && item.images[0]) || '/uploads/placeholder-coffret12.svg';
   }
 

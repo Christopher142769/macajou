@@ -79,9 +79,7 @@ const Cart = (() => {
         slug: product.slug,
         name: product.name,
         price: product.price,
-        image: limited
-          ? '/assets/edition-limitee.svg'
-          : product.images?.[0] || product.image || '',
+        image: product.images?.[0] || product.image || '',
         quantity: qty,
         flavors,
         category: product.category || '',
@@ -114,10 +112,7 @@ const Cart = (() => {
         slug: coffret.slug,
         name: coffret.name,
         price: coffret.price,
-        image:
-          coffret.limitedEdition || Number(coffret.capacity) === 10
-            ? '/assets/edition-limitee.svg'
-            : coffret.image || coffret.images?.[0] || '',
+        image: coffret.image || coffret.images?.[0] || '',
         quantity: qty,
         capacity,
         limitedEdition: !!(coffret.limitedEdition || capacity === 10),
