@@ -129,12 +129,20 @@
     const limitedNote = limited
       ? `<p class="limited-note">Édition limitée pour les occasions — emballage spécial, hors packaging Macajou classique.</p>`
       : '';
+    const limitedBadge = limited
+      ? `<span class="compose-badge">Édition limitée</span>`
+      : '';
+    const limitedInfoBadge = limited
+      ? `<div class="info-badge">Édition limitée</div>`
+      : '';
 
     root.innerHTML = `
       <div class="compose-visual">
+        ${limitedBadge}
         <img src="${esc(img)}" alt="${esc(coffret.name)}">
       </div>
       <div>
+        ${limitedInfoBadge}
         <div class="eyebrow">${trustApplied ? 'Sélection de la créatrice' : 'Je compose mon coffret'}</div>
         <h1>${esc(coffret.name)}</h1>
         <p class="lead">${esc(
