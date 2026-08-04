@@ -170,7 +170,8 @@
       return;
     }
     el.hidden = false;
-    el.className = 'coffret-grid is-day reveal in';
+    el.className =
+      'coffret-grid is-day reveal in' + (days.length === 1 ? ' is-single' : '');
     el.innerHTML = days
       .map((d, i) =>
         d.kind === 'product' ? productCardHtml(d.item, i) : coffretCardHtml(d.item, i, { isDay: true })
