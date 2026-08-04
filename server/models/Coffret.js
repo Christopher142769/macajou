@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const CAPACITIES = [4, 8, 10, 16, 18];
 const KINDS = ['coffret', 'pyramide'];
 const CAPACITY_MIN = 1;
-const CAPACITY_MAX = 99;
+const CAPACITY_MAX = 1000;
 
 const coffretSchema = new mongoose.Schema(
   {
