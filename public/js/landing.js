@@ -1,6 +1,7 @@
-/** Landing — sélection du jour + grille à composer */
+/** Landing — coffrets + modale pyramides */
 (function () {
   let coffrets = [];
+  let pyramides = [];
   let featuredProducts = [];
 
   function esc(s) {
@@ -30,10 +31,14 @@
     return item.image || (item.images && item.images[0]) || '/uploads/placeholder-coffret12.svg';
   }
 
+  function isPyramid(item) {
+    return item?.kind === 'pyramide';
+  }
+
   function ensureCartScript(cb) {
     if (window.Cart) return cb();
     const s = document.createElement('script');
-    s.src = '/js/cart.js';
+    s.src = '/js/cart.js?v=20260804-limited-photo';
     s.onload = cb;
     s.onerror = cb;
     document.head.appendChild(s);
@@ -60,11 +65,10 @@
   }
 
   function daySelection() {
-    const days = [
+    return [
       ...coffrets.filter((c) => c.featured).map((c) => ({ kind: 'coffret', item: c })),
       ...featuredProducts.map((p) => ({ kind: 'product', item: p })),
     ];
-    return days;
   }
 
   async function onAddProduct(productId, btn) {
@@ -89,13 +93,15 @@
     }
   }
 
-  function coffretCardHtml(c, i, opts = {}) {
+  function boxCardHtml(c, i, opts = {}) {
     const href = composerUrl(c.slug);
     const delay = i % 3 === 0 ? '' : i % 3 === 1 ? ' d1' : ' d2';
     const isDay = !!opts.isDay;
+    const pyramid = isPyramid(c);
     const limited = isLimited(c);
     const badge = isDay ? 'Sélection du jour' : limited ? 'Édition limitée' : c.badge || '';
     const badgeClass = isDay || limited ? 'coffret-badge is-day' : 'coffret-badge';
+    const ctaLabel = pyramid ? 'Je compose ma Pyramide' : 'Je compose mon Coffret';
     return `<article class="coffret-card reveal${delay} in">
       <a class="coffret-card-link" href="${esc(href)}">
         <div class="coffret-card-media">
@@ -118,7 +124,7 @@
       <div class="coffret-foot">
         <strong class="coffret-price">${esc(formatPrice(c.price))}</strong>
         <div class="coffret-ctas">
-          <a class="coffret-cta is-trust" href="${esc(href)}">Je compose mon Coffret</a>
+          <a class="coffret-cta is-trust" href="${esc(href)}">${esc(ctaLabel)}</a>
         </div>
       </div>
     </article>`;
@@ -174,7 +180,7 @@
       'coffret-grid is-day reveal in' + (days.length === 1 ? ' is-single' : '');
     el.innerHTML = days
       .map((d, i) =>
-        d.kind === 'product' ? productCardHtml(d.item, i) : coffretCardHtml(d.item, i, { isDay: true })
+        d.kind === 'product' ? productCardHtml(d.item, i) : boxCardHtml(d.item, i, { isDay: true })
       )
       .join('');
     if (head) head.hidden = false;
@@ -209,7 +215,59 @@
     if (composeHead) composeHead.hidden = false;
 
     zone.className = 'coffret-grid';
-    zone.innerHTML = coffrets.map((c, i) => coffretCardHtml(c, i)).join('');
+    zone.innerHTML = coffrets.map((c, i) => boxCardHtml(c, i)).join('');
+  }
+
+  function renderPyramidesModalGrid() {
+    const grid = document.getElementById('pyramidesModalGrid');
+    if (!grid) return;
+    if (!pyramides.length) {
+      grid.className = 'prod-zone';
+      grid.innerHTML =
+        '<p class="prod-empty">Les pyramides arrivent bientôt.<br>Créez-les depuis le dashboard (type Pyramide).</p>';
+      return;
+    }
+    grid.className = 'coffret-grid' + (pyramides.length === 1 ? ' is-day is-single' : '');
+    grid.innerHTML = pyramides.map((c, i) => boxCardHtml(c, i)).join('');
+  }
+
+  function openPyramidesModal() {
+    const modal = document.getElementById('pyramidesModal');
+    if (!modal) return;
+    renderPyramidesModalGrid();
+    modal.hidden = false;
+    modal.setAttribute('aria-hidden', 'false');
+    requestAnimationFrame(() => modal.classList.add('is-open'));
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closePyramidesModal() {
+    const modal = document.getElementById('pyramidesModal');
+    if (!modal) return;
+    modal.classList.remove('is-open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+    setTimeout(() => {
+      if (!modal.classList.contains('is-open')) modal.hidden = true;
+    }, 280);
+  }
+
+  function wirePyramidesModal() {
+    document.querySelectorAll('[data-open-pyramides]').forEach((el) => {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        openPyramidesModal();
+      });
+    });
+    const modal = document.getElementById('pyramidesModal');
+    modal?.addEventListener('click', (e) => {
+      if (e.target === modal || e.target.closest('[data-close-pyramides]')) {
+        closePyramidesModal();
+      }
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modal && !modal.hidden) closePyramidesModal();
+    });
   }
 
   function wireComposeCtas() {
@@ -237,13 +295,15 @@
   async function loadCatalog() {
     const zone = document.getElementById('prodZone');
     try {
-      const [cRes, pRes] = await Promise.all([
-        fetch('/api/coffrets'),
+      const [cRes, pRes, yRes] = await Promise.all([
+        fetch('/api/coffrets?kind=coffret'),
         fetch('/api/products?featured=1'),
+        fetch('/api/coffrets?kind=pyramide'),
       ]);
       if (!cRes.ok) throw new Error('API coffrets indisponible');
       coffrets = await cRes.json();
       featuredProducts = pRes.ok ? await pRes.json() : [];
+      pyramides = yRes.ok ? await yRes.json() : [];
       renderCoffrets();
       maybeScrollToCoffrets();
     } catch (err) {
@@ -263,6 +323,7 @@
     ensureCartScript(() => {
       wireCartBadge();
       wireComposeCtas();
+      wirePyramidesModal();
       wireDayActions(document.getElementById('dayPick'));
       wireDayActions(document.getElementById('prodZone'));
       loadCatalog();

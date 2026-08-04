@@ -1,7 +1,7 @@
 const express = require('express');
 const slugify = require('slugify');
 const Coffret = require('../models/Coffret');
-const { CAPACITIES } = require('../models/Coffret');
+const { CAPACITIES, KINDS } = require('../models/Coffret');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,11 +10,26 @@ function toSlug(name) {
   return slugify(name, { lower: true, strict: true, locale: 'fr' });
 }
 
+function normalizeKind(value) {
+  const k = String(value || 'coffret').toLowerCase();
+  return KINDS.includes(k) ? k : 'coffret';
+}
+
+function kindFilter(kindQuery) {
+  if (!kindQuery) return {};
+  const kind = normalizeKind(kindQuery);
+  if (kind === 'coffret') {
+    return { $or: [{ kind: 'coffret' }, { kind: { $exists: false } }, { kind: null }, { kind: '' }] };
+  }
+  return { kind };
+}
+
 function normalizeBody(body) {
   const data = { ...body };
   data.slug = data.slug || toSlug(data.name || '');
   data.capacity = Number(data.capacity);
   data.price = Number(data.price);
+  if (data.kind != null) data.kind = normalizeKind(data.kind);
   if (data.featured != null) data.featured = !!data.featured;
   if (data.limitedEdition != null) data.limitedEdition = !!data.limitedEdition;
   if (data.active != null) data.active = !!data.active;
@@ -45,18 +60,20 @@ router.get('/capacities', (_req, res) => {
   res.json(CAPACITIES);
 });
 
-router.get('/', async (_req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const items = await Coffret.find({ active: true }).sort({ order: 1, capacity: 1, createdAt: 1 });
+    const filter = { active: true, ...kindFilter(req.query.kind) };
+    const items = await Coffret.find(filter).sort({ order: 1, capacity: 1, createdAt: 1 });
     res.json(items);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-router.get('/admin/all', requireAuth, async (_req, res) => {
+router.get('/admin/all', requireAuth, async (req, res) => {
   try {
-    const items = await Coffret.find().sort({ order: 1, capacity: 1, createdAt: -1 });
+    const filter = kindFilter(req.query.kind);
+    const items = await Coffret.find(filter).sort({ kind: 1, order: 1, capacity: 1, createdAt: -1 });
     res.json(items);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -92,6 +109,7 @@ router.post('/', requireAuth, async (req, res) => {
     if (!data.name || Number.isNaN(data.price)) {
       return res.status(400).json({ error: 'Nom et prix requis' });
     }
+    data.kind = normalizeKind(data.kind);
     const item = await Coffret.create(data);
     res.status(201).json(item);
   } catch (err) {
@@ -157,12 +175,18 @@ async function ensureDefaults() {
         image: d.image || '',
         images: d.image ? [d.image] : [],
         order: i,
+        kind: 'coffret',
         featured: d.featured,
         limitedEdition: !!d.limitedEdition,
         active: true,
       });
     }
   }
+
+  await Coffret.updateMany(
+    { $or: [{ kind: { $exists: false } }, { kind: null }, { kind: '' }] },
+    { $set: { kind: 'coffret' } }
+  );
 
   // Coffret 10 historique → édition limitée (sans écraser un décochage volontaire)
   await Coffret.updateMany(

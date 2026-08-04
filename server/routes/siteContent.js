@@ -67,6 +67,31 @@ async function ensureSlots() {
     { $set: { value: 'E-shop' } }
   );
   await SiteContent.findOneAndUpdate(
+    { key: 'maison.cta', value: 'Succomber à la gourmandise' },
+    { $set: { value: 'Je compose ma pyramide' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'maison.cta', value: 'Découvrir les pyramides Macajou' },
+    { $set: { value: 'Je compose ma pyramide' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    { key: 'maison.title', value: 'Une gourmandise\nbéninoise' },
+    { $set: { value: 'Pyramides\nMacajou' } }
+  );
+  await SiteContent.findOneAndUpdate(
+    {
+      key: 'maison.body',
+      value:
+        'Des créations aux saveurs emblématiques de la Maison, où le croquant de la cajou torréfiée rencontre la douceur des coques moelleuses, à base de produits frais et locaux, pour une parenthèse résolument gourmande.',
+    },
+    {
+      $set: {
+        value:
+          'Les pyramides Macajou élèvent nos macajoux en une architecture gourmande : composez-les à votre goût, ou confiez la sélection à la créatrice, pour une parenthèse résolument béninoise.',
+      },
+    }
+  );
+  await SiteContent.findOneAndUpdate(
     { key: 'hero.over', value: 'Pâtisserie de cajou — Bénin 🇧🇯' },
     { $set: { value: 'Pâtisserie de cajou, Bénin 🇧🇯' } }
   );

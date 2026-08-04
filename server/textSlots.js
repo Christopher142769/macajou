@@ -82,11 +82,23 @@ module.exports = [
 
   // Maison
   {
+    key: 'maison.sur',
+    section: 'La Maison',
+    label: 'Sur-titre (script)',
+    defaultValue: 'Architecture gourmande',
+  },
+  {
+    key: 'maison.heading',
+    section: 'La Maison',
+    label: 'Titre script (comme Instant Macajou)',
+    defaultValue: 'Les pyramides Macajou',
+  },
+  {
     key: 'maison.title',
     section: 'La Maison',
-    label: 'Titre',
+    label: 'Titre panneau',
     multiline: true,
-    defaultValue: 'Une gourmandise\nbéninoise',
+    defaultValue: 'Pyramides\nMacajou',
   },
   {
     key: 'maison.body',
@@ -94,13 +106,13 @@ module.exports = [
     label: 'Paragraphe',
     multiline: true,
     defaultValue:
-      'Des créations aux saveurs emblématiques de la Maison, où le croquant de la cajou torréfiée rencontre la douceur des coques moelleuses, à base de produits frais et locaux, pour une parenthèse résolument gourmande.',
+      'Les pyramides Macajou élèvent nos macajoux en une architecture gourmande : composez-les à votre goût, ou confiez la sélection à la créatrice, pour une parenthèse résolument béninoise.',
   },
   {
     key: 'maison.cta',
     section: 'La Maison',
     label: 'Bouton',
-    defaultValue: 'Succomber à la gourmandise',
+    defaultValue: 'Je compose ma pyramide',
   },
 
 

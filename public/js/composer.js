@@ -84,6 +84,29 @@
     }
   }
 
+  function kindMeta() {
+    const pyramid = coffret?.kind === 'pyramide';
+    return {
+      pyramid,
+      label: pyramid ? 'pyramide' : 'coffret',
+      Label: pyramid ? 'Pyramide' : 'Coffret',
+      composeEyebrow: pyramid ? 'Je compose ma pyramide' : 'Je compose mon coffret',
+      switchLabel: pyramid ? 'Changer de pyramide' : 'Changer de coffret',
+      sameKind: coffrets.filter((c) => (c.kind === 'pyramide') === pyramid),
+      trustReady: pyramid
+        ? `La créatrice compose cette pyramide pour vous (${coffret.capacity} macajoux). Ajoutez-la au panier pour continuer.`
+        : `La créatrice compose ce coffret pour vous (${coffret.capacity} macajoux). Ajoutez-le au panier pour continuer.`,
+      fillHint: pyramid
+        ? `Choisissez exactement ${coffret.capacity} macajoux pour remplir cette pyramide.`
+        : `Choisissez exactement ${coffret.capacity} macajoux pour remplir ce coffret.`,
+      trustToggleHint: pyramid
+        ? 'Elle compose la pyramide pour vous — les saveurs se masquent.'
+        : 'Elle compose le coffret pour vous — les saveurs se masquent.',
+      afterEyebrow: pyramid ? 'Pyramide ajoutée' : 'Coffret ajouté',
+      toastOk: pyramid ? 'Pyramide ajoutée au panier' : 'Coffret ajouté au panier',
+    };
+  }
+
   function setQty(id, next) {
     if (trustOn) return;
     const key = String(id);
@@ -97,6 +120,7 @@
   }
 
   function showAfterAdd() {
+    const meta = kindMeta();
     let overlay = document.getElementById('afterAdd');
     if (!overlay) {
       overlay = document.createElement('div');
@@ -104,7 +128,7 @@
       overlay.className = 'after-add';
       overlay.innerHTML = `
         <div class="after-add-card" role="dialog" aria-labelledby="afterAddTitle" aria-modal="true">
-          <p class="after-add-eyebrow">Coffret ajouté</p>
+          <p class="after-add-eyebrow" data-after-eyebrow>${esc(meta.afterEyebrow)}</p>
           <h2 id="afterAddTitle">Que souhaitez-vous faire ?</h2>
           <p class="after-add-lead">Votre sélection est dans le panier. Continuez vos achats ou finalisez la commande.</p>
           <div class="after-add-actions">
@@ -119,6 +143,9 @@
           overlay.classList.remove('show');
         }
       });
+    } else {
+      const eye = overlay.querySelector('[data-after-eyebrow]');
+      if (eye) eye.textContent = meta.afterEyebrow;
     }
     overlay.classList.add('show');
   }
@@ -135,6 +162,7 @@
     root.hidden = false;
     document.title = `${coffret.name} ,  Macajou`;
 
+    const meta = kindMeta();
     const limited = !!(coffret.limitedEdition || Number(coffret.capacity) === 10);
     const img =
       coffret.image || coffret.images?.[0] || '/uploads/placeholder-coffret12.svg';
@@ -155,7 +183,7 @@
       : '';
 
     const composeBlock = trustOn
-      ? `<p class="trust-ready">La créatrice compose ce coffret pour vous (${esc(coffret.capacity)} macajoux). Ajoutez-le au panier pour continuer.</p>`
+      ? `<p class="trust-ready">${esc(meta.trustReady)}</p>`
       : `
         <div class="meter">
           <div>
@@ -199,19 +227,16 @@
       </div>
       <div>
         ${limitedInfoBadge}
-        <div class="eyebrow">Je compose mon coffret</div>
+        <div class="eyebrow">${esc(meta.composeEyebrow)}</div>
         <h1>${esc(coffret.name)}</h1>
-        <p class="lead">${esc(
-          coffret.shortDescription ||
-            `Choisissez exactement ${coffret.capacity} macajoux pour remplir ce coffret.`
-        )}</p>
+        <p class="lead">${esc(coffret.shortDescription || meta.fillHint)}</p>
         ${limitedNote}
         <div class="price">${esc(formatPrice(coffret.price))} · ${esc(coffret.capacity)} pièces</div>
 
-        <label class="field-label" for="coffretSwitch">Changer de coffret</label>
+        <label class="field-label" for="coffretSwitch">${esc(meta.switchLabel)}</label>
         <div class="switcher">
           <select id="coffretSwitch">
-            ${coffrets
+            ${meta.sameKind
               .map(
                 (c) =>
                   `<option value="${esc(c.slug)}" ${c.slug === coffret.slug ? 'selected' : ''}>${esc(c.name)} (${c.capacity}) ,  ${esc(formatPrice(c.price))}</option>`
@@ -223,7 +248,7 @@
         <label class="trust-toggle" for="trustToggle">
           <span class="trust-toggle-text">
             <strong>Faire confiance à la créatrice</strong>
-            <em>Elle compose le coffret pour vous — les saveurs se masquent.</em>
+            <em>${esc(meta.trustToggleHint)}</em>
           </span>
           <input type="checkbox" id="trustToggle" ${trustOn ? 'checked' : ''} role="switch" aria-checked="${trustOn ? 'true' : 'false'}">
           <span class="trust-switch" aria-hidden="true"></span>
@@ -238,7 +263,7 @@
         </div>
         <p class="hint">${
           trustOn
-            ? 'Sélection de la créatrice : le coffret est prêt à être ajouté au panier.'
+            ? `Sélection de la créatrice : ${meta.label} prêt${meta.pyramid ? 'e' : ''} à être ajouté${meta.pyramid ? 'e' : ''} au panier.`
             : `La composition est stricte : exactement ${coffret.capacity} macajoux, pas un de plus.`
         }</p>
         <p id="composeError" style="color:var(--rouge);margin-top:.8rem;font-size:.9rem" hidden></p>
@@ -268,7 +293,7 @@
         if (!window.Cart) throw new Error('Panier indisponible');
         if (trustOn) applyTrustSelection();
         window.Cart.addCoffret(coffret, composition(), 1);
-        window.Cart.toast(trustOn ? 'Sélection de la créatrice ajoutée' : 'Coffret ajouté au panier');
+        window.Cart.toast(trustOn ? 'Sélection de la créatrice ajoutée' : meta.toastOk);
         (window.Cart.showAfterAddChoice || showAfterAdd)();
       } catch (ex) {
         err.hidden = false;

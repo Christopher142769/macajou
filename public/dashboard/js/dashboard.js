@@ -1098,10 +1098,16 @@ function renderCoffretPreview() {
 }
 
 function openCoffretDialog(c = null) {
+  const kind = c?.kind === 'pyramide' ? 'pyramide' : 'coffret';
   document.getElementById('coffretError').hidden = true;
-  document.getElementById('coffretDialogTitle').textContent = c ? 'Modifier le coffret' : 'Nouveau coffret';
+  document.getElementById('coffretDialogTitle').textContent = c
+    ? kind === 'pyramide'
+      ? 'Modifier la pyramide'
+      : 'Modifier le coffret'
+    : 'Nouveau format';
   document.getElementById('coffretId').value = c?._id || '';
   document.getElementById('cName').value = c?.name || '';
+  document.getElementById('cKind').value = kind;
   document.getElementById('cBadge').value = c?.badge || '';
   document.getElementById('cCapacity').value = String(c?.capacity || 8);
   document.getElementById('cPrice').value = c?.price ?? '';
@@ -1123,12 +1129,13 @@ async function loadCoffrets() {
   if (!grid) return;
   grid.innerHTML =
     items
-      .map(
-        (c) => `<article class="card">
+      .map((c) => {
+        const kindLabel = c.kind === 'pyramide' ? 'Pyramide' : 'Coffret';
+        return `<article class="card">
       ${mediaThumb(c.image || c.images?.[0])}
       <div class="body">
         <h3>${escapeHtml(c.name)}</h3>
-        <div class="meta">${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}${
+        <div class="meta">${kindLabel} · ${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}${
           c.featured ? ' · ★ Sélection du jour' : ''
         }${c.limitedEdition || c.capacity === 10 ? ' · Édition limitée' : ''}</div>
         <div class="actions">
@@ -1137,9 +1144,9 @@ async function loadCoffrets() {
           <a href="/composer.html?slug=${encodeURIComponent(c.slug)}" target="_blank">Composer</a>
         </div>
       </div>
-    </article>`
-      )
-      .join('') || '<p class="empty-state">Aucun coffret ,  créez les formats 4, 8, 10, 16, 18.</p>';
+    </article>`;
+      })
+      .join('') || '<p class="empty-state">Aucun format — créez des coffrets ou des pyramides.</p>';
 }
 
 document.getElementById('newCoffretBtn')?.addEventListener('click', () => openCoffretDialog());
@@ -1186,6 +1193,7 @@ coffretForm?.addEventListener('submit', async (e) => {
     }
     const body = {
       name: document.getElementById('cName').value.trim(),
+      kind: document.getElementById('cKind').value,
       badge: document.getElementById('cBadge').value.trim(),
       capacity: Number(document.getElementById('cCapacity').value),
       price: Number(document.getElementById('cPrice').value),

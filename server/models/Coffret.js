@@ -1,11 +1,18 @@
 const mongoose = require('mongoose');
 
 const CAPACITIES = [4, 8, 10, 16, 18];
+const KINDS = ['coffret', 'pyramide'];
 
 const coffretSchema = new mongoose.Schema(
   {
     name: { type: String, required: true, trim: true },
     slug: { type: String, required: true, unique: true, index: true },
+    kind: {
+      type: String,
+      enum: KINDS,
+      default: 'coffret',
+      index: true,
+    },
     capacity: {
       type: Number,
       required: true,
@@ -27,3 +34,4 @@ const coffretSchema = new mongoose.Schema(
 
 module.exports = mongoose.model('Coffret', coffretSchema);
 module.exports.CAPACITIES = CAPACITIES;
+module.exports.KINDS = KINDS;
