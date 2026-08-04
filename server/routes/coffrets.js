@@ -1,7 +1,7 @@
 const express = require('express');
 const slugify = require('slugify');
 const Coffret = require('../models/Coffret');
-const { CAPACITIES, KINDS } = require('../models/Coffret');
+const { CAPACITIES, KINDS, CAPACITY_MIN, CAPACITY_MAX } = require('../models/Coffret');
 const { requireAuth } = require('../middleware/auth');
 
 const router = express.Router();
@@ -13,6 +13,11 @@ function toSlug(name) {
 function normalizeKind(value) {
   const k = String(value || 'coffret').toLowerCase();
   return KINDS.includes(k) ? k : 'coffret';
+}
+
+function isValidCapacity(value) {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= CAPACITY_MIN && n <= CAPACITY_MAX;
 }
 
 function kindFilter(kindQuery) {
@@ -27,7 +32,7 @@ function kindFilter(kindQuery) {
 function normalizeBody(body) {
   const data = { ...body };
   data.slug = data.slug || toSlug(data.name || '');
-  data.capacity = Number(data.capacity);
+  data.capacity = Math.round(Number(data.capacity));
   data.price = Number(data.price);
   if (data.kind != null) data.kind = normalizeKind(data.kind);
   if (data.featured != null) data.featured = !!data.featured;
@@ -103,8 +108,10 @@ router.get('/:id', async (req, res) => {
 router.post('/', requireAuth, async (req, res) => {
   try {
     const data = normalizeBody(req.body);
-    if (!CAPACITIES.includes(data.capacity)) {
-      return res.status(400).json({ error: `Capacité invalide (${CAPACITIES.join(', ')})` });
+    if (!isValidCapacity(data.capacity)) {
+      return res.status(400).json({
+        error: `Capacité invalide : indiquez un nombre entier entre ${CAPACITY_MIN} et ${CAPACITY_MAX}`,
+      });
     }
     if (!data.name || Number.isNaN(data.price)) {
       return res.status(400).json({ error: 'Nom et prix requis' });
@@ -120,8 +127,10 @@ router.post('/', requireAuth, async (req, res) => {
 router.put('/:id', requireAuth, async (req, res) => {
   try {
     const data = normalizeBody(req.body);
-    if (data.capacity != null && !CAPACITIES.includes(data.capacity)) {
-      return res.status(400).json({ error: `Capacité invalide (${CAPACITIES.join(', ')})` });
+    if (data.capacity != null && !isValidCapacity(data.capacity)) {
+      return res.status(400).json({
+        error: `Capacité invalide : indiquez un nombre entier entre ${CAPACITY_MIN} et ${CAPACITY_MAX}`,
+      });
     }
     const item = await Coffret.findByIdAndUpdate(req.params.id, data, {
       new: true,

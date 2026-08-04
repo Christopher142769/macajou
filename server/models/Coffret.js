@@ -1,7 +1,10 @@
 const mongoose = require('mongoose');
 
+/** Valeurs suggérées (seed / API legacy) — la capacité réelle est libre. */
 const CAPACITIES = [4, 8, 10, 16, 18];
 const KINDS = ['coffret', 'pyramide'];
+const CAPACITY_MIN = 1;
+const CAPACITY_MAX = 99;
 
 const coffretSchema = new mongoose.Schema(
   {
@@ -16,7 +19,8 @@ const coffretSchema = new mongoose.Schema(
     capacity: {
       type: Number,
       required: true,
-      enum: CAPACITIES,
+      min: CAPACITY_MIN,
+      max: CAPACITY_MAX,
     },
     price: { type: Number, required: true, min: 0 },
     shortDescription: { type: String, default: '' },
@@ -35,3 +39,5 @@ const coffretSchema = new mongoose.Schema(
 module.exports = mongoose.model('Coffret', coffretSchema);
 module.exports.CAPACITIES = CAPACITIES;
 module.exports.KINDS = KINDS;
+module.exports.CAPACITY_MIN = CAPACITY_MIN;
+module.exports.CAPACITY_MAX = CAPACITY_MAX;

@@ -1195,7 +1195,7 @@ coffretForm?.addEventListener('submit', async (e) => {
       name: document.getElementById('cName').value.trim(),
       kind: document.getElementById('cKind').value,
       badge: document.getElementById('cBadge').value.trim(),
-      capacity: Number(document.getElementById('cCapacity').value),
+      capacity: Math.round(Number(document.getElementById('cCapacity').value)),
       price: Number(document.getElementById('cPrice').value),
       shortDescription: document.getElementById('cShort').value.trim(),
       description: document.getElementById('cDesc').value.trim(),

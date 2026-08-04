@@ -383,14 +383,8 @@
             </div>
             <div class="grid2">
               <div class="field"><label>Badge</label><input id="cBadge" placeholder="Signature…"></div>
-              <div class="field"><label>Capacité</label>
-                <select id="cCapacity" required>
-                  <option value="4">4 macajoux</option>
-                  <option value="8">8 macajoux</option>
-                  <option value="10">10 macajoux</option>
-                  <option value="16">16 macajoux</option>
-                  <option value="18">18 macajoux</option>
-                </select>
+              <div class="field"><label>Nombre de macajoux</label>
+                <input id="cCapacity" type="number" min="1" max="99" step="1" value="8" required placeholder="ex. 12">
               </div>
             </div>
             <div class="grid2">
@@ -691,6 +685,6 @@
 </dialog>
 
 <div id="scrim" class="scrim" hidden></div>
-<script src="/dashboard/js/dashboard.js?v=20260804-pyramides-modal"></script>
+<script src="/dashboard/js/dashboard.js?v=20260804-capacity-free"></script>
 </body>
 </html>
