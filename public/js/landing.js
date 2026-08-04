@@ -67,26 +67,6 @@
     return days;
   }
 
-  async function onTrustClick(coffretId, btn) {
-    const coffret = coffrets.find((c) => String(c._id) === String(coffretId));
-    if (!coffret || !window.Cart?.trustAddCoffret) return;
-    const prev = btn?.textContent;
-    if (btn) {
-      btn.disabled = true;
-      btn.textContent = '…';
-    }
-    try {
-      await window.Cart.trustAddCoffret(coffret);
-    } catch (err) {
-      window.Cart.toast(err.message || 'Impossible d’ajouter la sélection');
-    } finally {
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = prev || 'Faire confiance à la créatrice';
-      }
-    }
-  }
-
   async function onAddProduct(productId, btn) {
     const product = featuredProducts.find((p) => String(p._id) === String(productId));
     if (!product || !window.Cart?.add) return;
@@ -138,8 +118,7 @@
       <div class="coffret-foot">
         <strong class="coffret-price">${esc(formatPrice(c.price))}</strong>
         <div class="coffret-ctas">
-          <button type="button" class="coffret-cta is-trust" data-trust="${esc(c._id)}">Faire confiance à la créatrice</button>
-          <a class="coffret-cta" href="${esc(href)}">Je compose</a>
+          <a class="coffret-cta is-trust" href="${esc(href)}">Je compose mon Coffret</a>
         </div>
       </div>
     </article>`;
@@ -202,13 +181,6 @@
 
   function wireDayActions(root) {
     root?.addEventListener('click', (e) => {
-      const trust = e.target.closest('[data-trust]');
-      if (trust) {
-        e.preventDefault();
-        e.stopPropagation();
-        onTrustClick(trust.getAttribute('data-trust'), trust);
-        return;
-      }
       const add = e.target.closest('[data-add-product]');
       if (add) {
         e.preventDefault();

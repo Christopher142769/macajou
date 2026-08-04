@@ -1,8 +1,7 @@
-/** Composition stricte d’un coffret avec macajoux */
+/** Fiche coffret — composition manuelle ou confiance à la créatrice */
 (function () {
   const params = new URLSearchParams(location.search);
   let slug = params.get('slug') || '';
-  const trustMode = params.get('trust') === '1';
   const state = document.getElementById('state');
   const root = document.getElementById('compose');
 
@@ -11,7 +10,7 @@
   let coffret = null;
   /** @type {Record<string, number>} */
   let qtyById = {};
-  let trustApplied = false;
+  let trustOn = false;
 
   function esc(s) {
     return String(s || '').replace(/[&<>"']/g, (c) =>
@@ -37,7 +36,7 @@
         macajouId: m._id,
         name: m.name,
         image: m.image || '',
-        quantity: qtyById[m._id] || 0,
+        quantity: qtyById[String(m._id)] || 0,
       }))
       .filter((c) => c.quantity > 0);
   }
@@ -45,15 +44,25 @@
   function applyTrustSelection() {
     qtyById = {};
     if (!macajoux.length || !coffret) return;
+    if (window.Cart?.buildTrustComposition) {
+      const built = window.Cart.buildTrustComposition(macajoux, coffret.capacity);
+      built.forEach((c) => {
+        qtyById[String(c.macajouId)] = c.quantity;
+      });
+      return;
+    }
     const cap = coffret.capacity;
     const n = macajoux.length;
     const base = Math.floor(cap / n);
     let rem = cap % n;
     macajoux.forEach((m, i) => {
       const q = base + (i < rem ? 1 : 0);
-      if (q > 0) qtyById[m._id] = q;
+      if (q > 0) qtyById[String(m._id)] = q;
     });
-    trustApplied = true;
+  }
+
+  function clearComposition() {
+    qtyById = {};
   }
 
   async function loadData() {
@@ -71,18 +80,19 @@
     if (!coffret) {
       coffret = coffrets[0];
       slug = coffret.slug;
-      const trustQ = trustMode ? '&trust=1' : '';
-      history.replaceState(null, '', `/composer.html?slug=${encodeURIComponent(slug)}${trustQ}`);
+      history.replaceState(null, '', `/composer.html?slug=${encodeURIComponent(slug)}`);
     }
   }
 
   function setQty(id, next) {
-    const cur = qtyById[id] || 0;
+    if (trustOn) return;
+    const key = String(id);
+    const cur = qtyById[key] || 0;
     const others = totalPieces() - cur;
     const capacity = coffret.capacity;
     const clamped = Math.max(0, Math.min(Number(next) || 0, capacity - others));
-    if (clamped <= 0) delete qtyById[id];
-    else qtyById[id] = clamped;
+    if (clamped <= 0) delete qtyById[key];
+    else qtyById[key] = clamped;
     render();
   }
 
@@ -113,10 +123,17 @@
     overlay.classList.add('show');
   }
 
+  function setTrust(on) {
+    trustOn = !!on;
+    if (trustOn) applyTrustSelection();
+    else clearComposition();
+    render();
+  }
+
   function render() {
     state.hidden = true;
     root.hidden = false;
-    document.title = `${coffret.name} ,  Composer Macajou`;
+    document.title = `${coffret.name} ,  Macajou`;
 
     const limited = !!(coffret.limitedEdition || Number(coffret.capacity) === 10);
     const img =
@@ -126,6 +143,7 @@
     const full = used === coffret.capacity;
     const over = used > coffret.capacity;
     const pct = Math.min(100, (used / coffret.capacity) * 100);
+    const canAdd = trustOn || full;
     const limitedNote = limited
       ? `<p class="limited-note">Édition limitée pour les occasions — emballage spécial, hors packaging Macajou classique.</p>`
       : '';
@@ -136,36 +154,9 @@
       ? `<div class="info-badge">Édition limitée</div>`
       : '';
 
-    root.innerHTML = `
-      <div class="compose-visual">
-        ${limitedBadge}
-        <img src="${esc(img)}" alt="${esc(coffret.name)}">
-      </div>
-      <div>
-        ${limitedInfoBadge}
-        <div class="eyebrow">${trustApplied ? 'Sélection de la créatrice' : 'Je compose mon coffret'}</div>
-        <h1>${esc(coffret.name)}</h1>
-        <p class="lead">${esc(
-          trustApplied
-            ? 'Voici une composition équilibrée préparée pour vous. Ajustez-la si vous le souhaitez, puis ajoutez au panier.'
-            : coffret.shortDescription ||
-                `Choisissez exactement ${coffret.capacity} macajoux pour remplir ce coffret.`
-        )}</p>
-        ${limitedNote}
-        <div class="price">${esc(formatPrice(coffret.price))} · ${esc(coffret.capacity)} pièces</div>
-
-        <label class="field-label" for="coffretSwitch">Changer de coffret</label>
-        <div class="switcher">
-          <select id="coffretSwitch">
-            ${coffrets
-              .map(
-                (c) =>
-                  `<option value="${esc(c.slug)}" ${c.slug === coffret.slug ? 'selected' : ''}>${esc(c.name)} (${c.capacity}) ,  ${esc(formatPrice(c.price))}</option>`
-              )
-              .join('')}
-          </select>
-        </div>
-
+    const composeBlock = trustOn
+      ? `<p class="trust-ready">La créatrice compose ce coffret pour vous (${esc(coffret.capacity)} macajoux). Ajoutez-le au panier pour continuer.</p>`
+      : `
         <div class="meter">
           <div>
             <div class="field-label" style="margin:0">Remplissage</div>
@@ -182,7 +173,7 @@
         <div class="mac-grid" id="macGrid">
           ${macajoux
             .map((m) => {
-              const q = qtyById[m._id] || 0;
+              const q = qtyById[String(m._id)] || 0;
               const canPlus = left > 0 || q > 0;
               return `<article class="mac-card" data-id="${esc(m._id)}">
                 ${
@@ -199,26 +190,72 @@
               </article>`;
             })
             .join('')}
+        </div>`;
+
+    root.innerHTML = `
+      <div class="compose-visual">
+        ${limitedBadge}
+        <img src="${esc(img)}" alt="${esc(coffret.name)}">
+      </div>
+      <div>
+        ${limitedInfoBadge}
+        <div class="eyebrow">Je compose mon coffret</div>
+        <h1>${esc(coffret.name)}</h1>
+        <p class="lead">${esc(
+          coffret.shortDescription ||
+            `Choisissez exactement ${coffret.capacity} macajoux pour remplir ce coffret.`
+        )}</p>
+        ${limitedNote}
+        <div class="price">${esc(formatPrice(coffret.price))} · ${esc(coffret.capacity)} pièces</div>
+
+        <label class="field-label" for="coffretSwitch">Changer de coffret</label>
+        <div class="switcher">
+          <select id="coffretSwitch">
+            ${coffrets
+              .map(
+                (c) =>
+                  `<option value="${esc(c.slug)}" ${c.slug === coffret.slug ? 'selected' : ''}>${esc(c.name)} (${c.capacity}) ,  ${esc(formatPrice(c.price))}</option>`
+              )
+              .join('')}
+          </select>
         </div>
 
+        <label class="trust-toggle" for="trustToggle">
+          <span class="trust-toggle-text">
+            <strong>Faire confiance à la créatrice</strong>
+            <em>Elle compose le coffret pour vous — les saveurs se masquent.</em>
+          </span>
+          <input type="checkbox" id="trustToggle" ${trustOn ? 'checked' : ''} role="switch" aria-checked="${trustOn ? 'true' : 'false'}">
+          <span class="trust-switch" aria-hidden="true"></span>
+        </label>
+
+        ${composeBlock}
+
         <div class="actions">
-          <button type="button" class="btn btn-rouge" id="addBtn" ${full ? '' : 'disabled'}>Ajouter au panier</button>
+          <button type="button" class="btn btn-rouge" id="addBtn" ${canAdd ? '' : 'disabled'}>Ajouter au panier</button>
           <a class="btn btn-outline" href="/panier.html">Voir le panier</a>
           <a class="btn btn-outline" href="/">Retour à l’accueil</a>
         </div>
-        <p class="hint">La composition est stricte : exactement ${coffret.capacity} macajoux, pas un de plus.</p>
+        <p class="hint">${
+          trustOn
+            ? 'Sélection de la créatrice : le coffret est prêt à être ajouté au panier.'
+            : `La composition est stricte : exactement ${coffret.capacity} macajoux, pas un de plus.`
+        }</p>
         <p id="composeError" style="color:var(--rouge);margin-top:.8rem;font-size:.9rem" hidden></p>
       </div>`;
 
     document.getElementById('coffretSwitch')?.addEventListener('change', (e) => {
-      const trustQ = trustMode ? '&trust=1' : '';
-      location.href = `/composer.html?slug=${encodeURIComponent(e.target.value)}${trustQ}`;
+      location.href = `/composer.html?slug=${encodeURIComponent(e.target.value)}`;
+    });
+
+    document.getElementById('trustToggle')?.addEventListener('change', (e) => {
+      setTrust(e.target.checked);
     });
 
     document.getElementById('macGrid')?.addEventListener('click', (e) => {
       const card = e.target.closest('.mac-card');
       if (!card) return;
-      const id = card.dataset.id;
+      const id = String(card.dataset.id);
       const q = qtyById[id] || 0;
       if (e.target.closest('[data-inc]')) setQty(id, q + 1);
       if (e.target.closest('[data-dec]')) setQty(id, q - 1);
@@ -229,8 +266,9 @@
       err.hidden = true;
       try {
         if (!window.Cart) throw new Error('Panier indisponible');
+        if (trustOn) applyTrustSelection();
         window.Cart.addCoffret(coffret, composition(), 1);
-        window.Cart.toast('Coffret ajouté au panier');
+        window.Cart.toast(trustOn ? 'Sélection de la créatrice ajoutée' : 'Coffret ajouté au panier');
         (window.Cart.showAfterAddChoice || showAfterAdd)();
       } catch (ex) {
         err.hidden = false;
@@ -243,32 +281,12 @@
     try {
       await loadData();
       pickCoffret();
-      qtyById = {};
-      if (trustMode) {
-        applyTrustSelection();
-        // Ajout immédiat + popup (sans forcer le parcours composition manuelle)
-        try {
-          if (!window.Cart) throw new Error('Panier indisponible');
-          window.Cart.addCoffret(coffret, composition(), 1);
-          window.Cart.toast('Sélection de la créatrice ajoutée');
-          render();
-          (window.Cart.showAfterAddChoice || showAfterAdd)();
-          return;
-        } catch (ex) {
-          render();
-          const err = document.getElementById('composeError');
-          if (err) {
-            err.hidden = false;
-            err.textContent = ex.message;
-          }
-          return;
-        }
-      }
+      clearComposition();
       render();
     } catch (err) {
       state.hidden = false;
       root.hidden = true;
-      state.textContent = err.message || 'Impossible de charger le compositeur.';
+      state.textContent = err.message || 'Impossible de charger le coffret.';
     }
   }
 
