@@ -498,17 +498,27 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
   50%{box-shadow:0 16px 42px -8px rgba(181,18,27,.7)}
 }
 @media(prefers-reduced-motion:reduce){.btn-italic.is-pyramides{animation:none}}
-.pyramides-modal{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:1.2rem;background:rgba(28,22,17,.55);opacity:0;pointer-events:none;transition:opacity .28s}
+.pyramides-modal{position:fixed;inset:0;z-index:400;display:grid;place-items:center;padding:1rem;background:rgba(28,22,17,.55);opacity:0;pointer-events:none;transition:opacity .28s}
 .pyramides-modal.is-open{opacity:1;pointer-events:auto}
-.pyramides-modal-card{width:min(1100px,100%);max-height:min(88vh,920px);overflow:auto;background:var(--creme);border:1px solid rgba(28,22,17,.1);padding:1.6rem 1.4rem 1.8rem;position:relative;box-shadow:0 30px 80px rgba(28,22,17,.28)}
-.pyramides-modal-head{text-align:center;max-width:42ch;margin:0 auto 1.4rem}
-.pyramides-modal-head .sur{display:block;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.4rem}
-.pyramides-modal-head h3{font-family:var(--display);font-weight:500;font-size:clamp(1.4rem,2.6vw,1.85rem);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .45rem}
-.pyramides-modal-head p{opacity:.7;line-height:1.5;margin:0;font-size:.95rem}
-.pyramides-modal-close{position:absolute;top:.85rem;right:.85rem;width:42px;height:42px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.25rem;line-height:1}
-.pyramides-modal .coffret-grid{margin-top:0}
-.pyramides-modal .prod-empty{text-align:center;opacity:.7;padding:2rem 1rem}
-@media(max-width:640px){.pyramides-modal-card{padding:1.2rem 1rem 1.4rem}}
+.pyramides-modal-card{width:min(560px,100%);max-height:min(78vh,640px);overflow:auto;background:var(--creme);border:1px solid rgba(28,22,17,.1);padding:1.25rem 1.1rem 1.35rem;position:relative;box-shadow:0 24px 60px rgba(28,22,17,.28)}
+.pyramides-modal-head{text-align:center;max-width:36ch;margin:0 auto 1rem}
+.pyramides-modal-head .sur{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.3rem}
+.pyramides-modal-head h3{font-family:var(--display);font-weight:500;font-size:clamp(1.15rem,2.2vw,1.45rem);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .35rem}
+.pyramides-modal-head p{opacity:.7;line-height:1.45;margin:0;font-size:.88rem}
+.pyramides-modal-close{position:absolute;top:.65rem;right:.65rem;width:36px;height:36px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.1rem;line-height:1}
+.pyramides-modal .coffret-grid{margin-top:0;grid-template-columns:1fr;gap:1rem}
+.pyramides-modal .coffret-grid.is-day.is-single{grid-template-columns:1fr}
+.pyramides-modal .coffret-grid.is-day.is-single > .coffret-card{grid-column:auto;width:100%}
+.pyramides-modal .coffret-card:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(28,22,17,.1)}
+.pyramides-modal .coffret-card-media{aspect-ratio:16/10}
+.pyramides-modal .coffret-card-body{padding:.9rem .95rem 0;gap:.25rem}
+.pyramides-modal .coffret-card-body h3{font-size:1.1rem}
+.pyramides-modal .coffret-count{font-size:.9rem}
+.pyramides-modal .coffret-price{font-size:1rem;margin:.15rem 0 .55rem}
+.pyramides-modal .coffret-cta{padding:.85rem 1rem;font-size:.95rem}
+.pyramides-modal .prod-empty{text-align:center;opacity:.7;padding:1.4rem .8rem;font-size:.95rem}
+@media(min-width:640px){.pyramides-modal-card{width:min(640px,100%)}.pyramides-modal .coffret-grid{grid-template-columns:1fr 1fr;gap:1rem}.pyramides-modal .coffret-grid.is-day.is-single{grid-template-columns:1fr}.pyramides-modal .coffret-grid.is-day.is-single > .coffret-card{max-width:320px;justify-self:center}}
+@media(max-width:640px){.pyramides-modal-card{padding:1.05rem .9rem 1.15rem;max-height:min(84vh,720px)}}
 
 
 </style>
@@ -939,7 +949,7 @@ if(histRoute){
 <script src="/js/site-media.js"></script>
 <script src="/js/site-content.js?v=20260802-macajou"></script>
 <script src="/js/club.js?v=20260802-notif-fix"></script>
-<script src="/js/landing.js?v=20260804-pyramides-modal"></script>
+<script src="/js/landing.js?v=20260804-pyramides-modal-sm"></script>
 
 <div class="pyramides-modal" id="pyramidesModal" hidden aria-hidden="true">
   <div class="pyramides-modal-card" role="dialog" aria-modal="true" aria-labelledby="pyramidesModalTitle">

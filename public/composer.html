@@ -52,6 +52,24 @@
 .qty span{min-width:1.4rem;font-weight:500}
 .actions{display:flex;flex-wrap:wrap;gap:.8rem;align-items:center}
 .actions .btn{flex:1 1 auto}
+.btn-invite-pyramides{
+  display:inline-flex;align-items:center;justify-content:center;text-align:center;text-decoration:none;
+  font-family:var(--display);font-style:italic;font-size:1.05rem;font-weight:500;
+  padding:1rem 1.35rem;border:none;cursor:pointer;
+  color:var(--creme);background:var(--rouge);
+  box-shadow:0 10px 28px rgba(181,18,27,.28);
+  transition:transform .25s,box-shadow .25s,letter-spacing .25s,background .25s;
+  animation:invitePulse 2.4s ease-in-out infinite;
+}
+.btn-invite-pyramides:hover{
+  transform:translateY(-2px);letter-spacing:.02em;
+  box-shadow:0 16px 36px rgba(181,18,27,.38);background:#9e0f17;
+}
+@keyframes invitePulse{
+  0%,100%{box-shadow:0 10px 28px rgba(181,18,27,.28)}
+  50%{box-shadow:0 14px 34px rgba(181,18,27,.42)}
+}
+@media(prefers-reduced-motion:reduce){.btn-invite-pyramides{animation:none}}
 .hint{font-size:.85rem;opacity:.7;margin-top:.9rem}
 .limited-note{font-size:.88rem;line-height:1.45;opacity:.78;border-left:2px solid var(--rouge);padding-left:.85rem;margin:.2rem 0 .9rem;max-width:46ch}
 .error-box{padding:4rem 0;text-align:center;font-family:var(--display);font-size:1.4rem}
@@ -96,7 +114,7 @@
   }
   .mac-card .name{min-height:2.4em;font-size:.82rem}
   .actions{flex-direction:column;align-items:stretch}
-  .actions .btn{width:100%;flex:none}
+  .actions .btn,.actions .btn-invite-pyramides{width:100%;flex:none}
 }
 @media(max-width:480px){
   .compose-visual{aspect-ratio:4/5}
@@ -129,6 +147,6 @@
 </main>
 
 <script src="/js/cart.js?v=20260804-limited-photo"></script>
-<script src="/js/composer.js?v=20260804-pyramides-modal"></script>
+<script src="/js/composer.js?v=20260804-pyramides-invite"></script>
 </body>
 </html>

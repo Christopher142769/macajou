@@ -258,7 +258,11 @@
 
         <div class="actions">
           <button type="button" class="btn btn-rouge" id="addBtn" ${canAdd ? '' : 'disabled'}>Ajouter au panier</button>
-          <a class="btn btn-outline" href="/panier.html">Voir le panier</a>
+          ${
+            meta.pyramid
+              ? `<a class="btn btn-invite-pyramides" href="/#maison">Voir les pyramides Macajou</a>`
+              : `<a class="btn btn-outline" href="/panier.html">Voir le panier</a>`
+          }
           <a class="btn btn-outline" href="/">Retour à l’accueil</a>
         </div>
         <p class="hint">${
