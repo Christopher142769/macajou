@@ -69,30 +69,46 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+async function afterMongoReady() {
+  await ensureDefaultAdmin();
+  console.log(`Administrateur synchronisé : ${config.adminEmail}`);
+  await siteMediaRoutes.ensureSlots();
+  await siteContentRoutes.ensureSlots();
+  await categoryRoutes.ensureDefaults();
+  await coffretRoutes.ensureDefaults();
+  await macajouRoutes.ensureDefaults();
+  await clubRoutes.ensureDefaults();
+}
+
+let mongoConnecting = false;
+
 async function connectMongo() {
-  const attempts = 8;
-  for (let i = 1; i <= attempts; i++) {
+  if (mongoose.connection.readyState === 1 || mongoConnecting) return;
+  mongoConnecting = true;
+  let attempt = 1;
+  while (mongoose.connection.readyState !== 1) {
     try {
       await mongoose.connect(config.mongoUri, {
         serverSelectionTimeoutMS: 8000,
       });
       console.log('MongoDB connecté');
-      await ensureDefaultAdmin();
-      console.log(`Administrateur synchronisé : ${config.adminEmail}`);
-      await siteMediaRoutes.ensureSlots();
-      await siteContentRoutes.ensureSlots();
-      await categoryRoutes.ensureDefaults();
-      await coffretRoutes.ensureDefaults();
-      await macajouRoutes.ensureDefaults();
-      await clubRoutes.ensureDefaults();
-      return true;
+      await afterMongoReady();
+      break;
     } catch (err) {
-      console.error(`MongoDB tentative ${i}/${attempts} :`, err.message);
-      if (i < attempts) await new Promise((r) => setTimeout(r, 1500 * i));
+      console.error(`MongoDB tentative ${attempt} :`, err.message);
+      const wait = Math.min(15000, 1500 * attempt);
+      await new Promise((r) => setTimeout(r, wait));
+      attempt += 1;
     }
   }
-  return false;
+  mongoConnecting = false;
 }
+
+mongoose.connection.on('disconnected', () => {
+  if (mongoConnecting) return;
+  console.error('MongoDB déconnecté — reconnexion…');
+  connectMongo().catch((err) => console.error(err.message));
+});
 
 async function start() {
   const host = process.env.HOST || '0.0.0.0';
@@ -105,10 +121,9 @@ async function start() {
     server.on('error', reject);
   });
 
-  const ok = await connectMongo();
-  if (!ok) {
-    console.error('MongoDB indisponible : le site statique tourne, les API échoueront jusqu’à reconnexion.');
-  }
+  connectMongo().catch((err) => {
+    console.error('MongoDB indisponible :', err.message);
+  });
 }
 
 start().catch((err) => {

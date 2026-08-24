@@ -133,7 +133,6 @@ router.get('/', async (_req, res) => {
 
 router.get('/map', async (_req, res) => {
   try {
-    await ensureSlots();
     const items = await SiteContent.find().lean();
     const map = {};
     for (const item of items) {

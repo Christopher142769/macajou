@@ -32,7 +32,6 @@ router.get('/', async (_req, res) => {
 
 router.get('/map', async (_req, res) => {
   try {
-    await ensureSlots();
     const items = await SiteMedia.find({ url: { $ne: '' } }).lean();
     const map = {};
     for (const item of items) map[item.key] = { url: item.url, alt: item.alt, kind: item.kind };
