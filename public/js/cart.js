@@ -184,7 +184,9 @@ const Cart = (() => {
 
   /** Répartition équilibrée des macajoux (sélection créatrice). */
   function buildTrustComposition(macajoux, capacity) {
-    const list = Array.isArray(macajoux) ? macajoux.filter(Boolean) : [];
+    const list = Array.isArray(macajoux)
+      ? macajoux.filter((m) => m && m.available !== false)
+      : [];
     const cap = Math.max(0, Number(capacity) || 0);
     if (!list.length || !cap) return [];
     const base = Math.floor(cap / list.length);

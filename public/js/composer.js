@@ -2,6 +2,7 @@
 (function () {
   const params = new URLSearchParams(location.search);
   let slug = params.get('slug') || '';
+  const trustLocked = params.get('trust') === '1';
   const state = document.getElementById('state');
   const root = document.getElementById('compose');
 
@@ -41,21 +42,26 @@
       .filter((c) => c.quantity > 0);
   }
 
+  function availableMacajoux() {
+    return macajoux.filter((m) => m.available !== false);
+  }
+
   function applyTrustSelection() {
     qtyById = {};
-    if (!macajoux.length || !coffret) return;
+    const list = availableMacajoux();
+    if (!list.length || !coffret) return;
     if (window.Cart?.buildTrustComposition) {
-      const built = window.Cart.buildTrustComposition(macajoux, coffret.capacity);
+      const built = window.Cart.buildTrustComposition(list, coffret.capacity);
       built.forEach((c) => {
         qtyById[String(c.macajouId)] = c.quantity;
       });
       return;
     }
     const cap = coffret.capacity;
-    const n = macajoux.length;
+    const n = list.length;
     const base = Math.floor(cap / n);
     let rem = cap % n;
-    macajoux.forEach((m, i) => {
+    list.forEach((m, i) => {
       const q = base + (i < rem ? 1 : 0);
       if (q > 0) qtyById[String(m._id)] = q;
     });
@@ -109,6 +115,8 @@
 
   function setQty(id, next) {
     if (trustOn) return;
+    const mac = macajoux.find((m) => String(m._id) === String(id));
+    if (mac && mac.available === false) return;
     const key = String(id);
     const cur = qtyById[key] || 0;
     const others = totalPieces() - cur;
@@ -160,6 +168,10 @@
   function render() {
     state.hidden = true;
     root.hidden = false;
+    Object.keys(qtyById).forEach((id) => {
+      const m = macajoux.find((x) => String(x._id) === id);
+      if (m && m.available === false) delete qtyById[id];
+    });
     document.title = `${coffret.name} ,  Macajou`;
 
     const meta = kindMeta();
@@ -203,18 +215,23 @@
             .map((m) => {
               const q = qtyById[String(m._id)] || 0;
               const canPlus = left > 0 || q > 0;
-              return `<article class="mac-card" data-id="${esc(m._id)}">
+              const available = m.available !== false;
+              return `<article class="mac-card${available ? '' : ' is-unavailable'}" data-id="${esc(m._id)}"${available ? '' : ' aria-disabled="true"'}>
                 ${
                   m.image
                     ? `<img src="${esc(m.image)}" alt="${esc(m.name)}">`
                     : `<div class="ph">${esc(m.name.slice(0, 1))}</div>`
                 }
                 <div class="name">${esc(m.name)}</div>
-                <div class="qty">
+                ${
+                  available
+                    ? `<div class="qty">
                   <button type="button" data-dec ${q <= 0 ? 'disabled' : ''} aria-label="Retirer">−</button>
                   <span>${q}</span>
                   <button type="button" data-inc ${!canPlus || left <= 0 ? 'disabled' : ''} aria-label="Ajouter">+</button>
-                </div>
+                </div>`
+                    : '<span class="mac-unavailable">Indisponible</span>'
+                }
               </article>`;
             })
             .join('')}
@@ -245,14 +262,18 @@
           </select>
         </div>
 
-        <label class="trust-toggle" for="trustToggle">
+        ${
+          trustLocked
+            ? ''
+            : `<label class="trust-toggle" for="trustToggle">
           <span class="trust-toggle-text">
             <strong>Faire confiance à la créatrice</strong>
             <em>${esc(meta.trustToggleHint)}</em>
           </span>
           <input type="checkbox" id="trustToggle" ${trustOn ? 'checked' : ''} role="switch" aria-checked="${trustOn ? 'true' : 'false'}">
           <span class="trust-switch" aria-hidden="true"></span>
-        </label>
+        </label>`
+        }
 
         ${composeBlock}
 
@@ -274,7 +295,8 @@
       </div>`;
 
     document.getElementById('coffretSwitch')?.addEventListener('change', (e) => {
-      location.href = `/composer.html?slug=${encodeURIComponent(e.target.value)}`;
+      const next = `/composer.html?slug=${encodeURIComponent(e.target.value)}`;
+      location.href = trustLocked ? `${next}&trust=1` : next;
     });
 
     document.getElementById('trustToggle')?.addEventListener('change', (e) => {
@@ -311,7 +333,8 @@
       await loadData();
       pickCoffret();
       clearComposition();
-      render();
+      if (params.get('trust') === '1') setTrust(true);
+      else render();
     } catch (err) {
       state.hidden = false;
       root.hidden = true;

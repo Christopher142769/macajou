@@ -465,6 +465,12 @@ footer li a:hover{color:var(--rouge)}
 .coffret-cta.is-trust:hover{background:var(--rouge-sombre);border-color:var(--rouge-sombre);color:var(--creme)}
 .coffret-cta.is-trust:disabled{opacity:.55;cursor:wait}
 .coffret-badge.is-day{background:var(--rouge);color:var(--creme);font-family:var(--body);font-style:normal;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;padding:.4rem .75rem}
+.coffret-badge.is-unavailable{top:auto;bottom:14px;left:14px;background:rgba(28,22,17,.82);color:var(--creme);font-family:var(--body);font-style:normal;font-size:.68rem;letter-spacing:.12em;text-transform:uppercase;padding:.4rem .75rem}
+.coffret-card.is-unavailable{opacity:.68;filter:grayscale(.82)}
+.coffret-card.is-unavailable:hover{transform:none;box-shadow:0 8px 24px rgba(28,22,17,.08)}
+.coffret-card.is-unavailable .coffret-card-media img{transform:none}
+.coffret-card.is-unavailable .coffret-cta.is-trust:disabled{background:#8a8a8a;border-color:#8a8a8a;opacity:1;cursor:not-allowed}
+.coffret-cta.is-trust:disabled{opacity:.55;cursor:not-allowed}
 @media(max-width:980px){.coffret-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:640px){.coffret-grid{grid-template-columns:1fr;gap:1.2rem}}
 button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance:none}
@@ -519,6 +525,37 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
 .pyramides-modal .prod-empty{text-align:center;opacity:.7;padding:1.4rem .8rem;font-size:.95rem}
 @media(min-width:640px){.pyramides-modal-card{width:min(640px,100%)}.pyramides-modal .coffret-grid{grid-template-columns:1fr 1fr;gap:1rem}.pyramides-modal .coffret-grid.is-day.is-single{grid-template-columns:1fr}.pyramides-modal .coffret-grid.is-day.is-single > .coffret-card{max-width:320px;justify-self:center}}
 @media(max-width:640px){.pyramides-modal-card{padding:1.05rem .9rem 1.15rem;max-height:min(84vh,720px)}}
+.coffret-choice-modal{position:fixed;inset:0;z-index:410;display:grid;place-items:center;padding:1rem;background:rgba(28,22,17,.58);opacity:0;pointer-events:none;transition:opacity .28s}
+.coffret-choice-modal.is-open{opacity:1;pointer-events:auto}
+.coffret-choice-card{width:min(480px,100%);background:linear-gradient(180deg,#fffdf8 0%,var(--creme) 100%);border:1px solid rgba(28,22,17,.1);padding:1.5rem 1.35rem 1.45rem;position:relative;box-shadow:0 28px 70px rgba(28,22,17,.32)}
+.coffret-choice-close{position:absolute;top:.65rem;right:.65rem;width:36px;height:36px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.1rem;line-height:1}
+.coffret-choice-head{text-align:center;max-width:34ch;margin:0 auto 1.35rem;padding-top:.25rem}
+.coffret-choice-head .sur{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.35rem}
+.coffret-choice-head h3{font-family:var(--display);font-weight:500;font-size:clamp(1.2rem,2.4vw,1.5rem);text-transform:uppercase;letter-spacing:.04em;margin:0 0 .45rem;line-height:1.2}
+.coffret-choice-head p{opacity:.72;line-height:1.5;margin:0;font-size:.9rem}
+.coffret-choice-actions{display:flex;flex-direction:column;gap:.75rem}
+.coffret-choice-btn{
+  display:flex;flex-direction:column;align-items:flex-start;gap:.2rem;width:100%;text-align:left;
+  padding:1rem 1.1rem;border:1px solid var(--line);background:#fff;cursor:pointer;
+  font-family:inherit;transition:transform .25s,box-shadow .25s,border-color .25s,background .25s
+}
+.coffret-choice-btn strong{font-family:var(--display);font-weight:500;font-size:1.05rem;letter-spacing:.02em;text-transform:uppercase;line-height:1.25}
+.coffret-choice-btn em{font-style:normal;font-size:.82rem;opacity:.68;line-height:1.4}
+.coffret-choice-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(28,22,17,.08)}
+.coffret-choice-btn.is-trust{
+  position:relative;border-color:var(--rouge);background:var(--rouge);color:var(--creme);
+  padding:1.15rem 1.1rem 1.05rem;box-shadow:0 16px 36px -10px rgba(181,18,27,.55)
+}
+.coffret-choice-btn.is-trust em{opacity:.88;color:var(--creme)}
+.coffret-choice-btn.is-trust:hover{background:var(--rouge-sombre);border-color:var(--rouge-sombre);box-shadow:0 18px 42px -8px rgba(181,18,27,.65)}
+.coffret-choice-badge{
+  display:inline-block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
+  background:rgba(251,245,232,.22);border:1px solid rgba(251,245,232,.35);
+  padding:.22rem .55rem;margin-bottom:.35rem;font-weight:500
+}
+.coffret-choice-btn.is-compose strong{color:var(--encre)}
+.coffret-choice-btn.is-compose:hover{border-color:var(--encre);background:var(--creme-2)}
+@media(max-width:640px){.coffret-choice-card{padding:1.25rem 1rem 1.3rem}}
 
 
 </style>
@@ -545,6 +582,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
   <nav>
     <div class="nav-left">
       <a class="nav-link" href="#collection">E-Shop</a>
+      <a class="nav-link" href="/ingredients.html">Ingrédients</a>
       <a class="nav-link" href="#adresses">Nos points de vente</a>
       <a class="nav-link" href="#entreprise">Entreprises</a>
       <a class="nav-link" href="#histoire">La Maison</a>
@@ -567,6 +605,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
 <div class="mobile-menu" id="mobileMenu">
   <button class="mm-close" id="mmClose" aria-label="Fermer">✕</button>
   <a href="#collection">E-Shop</a>
+  <a href="/ingredients.html">Ingrédients</a>
   <a href="#adresses">Nos points de vente</a>
   <a href="#entreprise">Entreprises</a>
   <a href="#histoire">La Maison</a>
@@ -589,7 +628,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
       <span class="hl" data-content="hero.hl2">des Macajoux</span>
       <span class="hl" data-content="hero.hl3">est ouverte</span>
     </h1>
-    <a class="btn-creme" href="#collection" data-content="hero.cta" data-compose-coffret>Je choisis mon coffret</a>
+    <a class="btn-creme" href="#collection" data-content="hero.cta">Je choisis mon coffret</a>
   </div>
   <div class="hero-scroll" aria-hidden="true" data-content="hero.scroll">Défiler</div>
 </section>
@@ -605,7 +644,6 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
     <div class="day-head reveal in" id="dayHead" hidden>
       <span class="sur">Suggestion</span>
       <h3>Sélection du jour</h3>
-      <p>Faites confiance à la créatrice, ou composez à votre goût.</p>
     </div>
     <div id="dayPick" class="coffret-grid is-day reveal in" hidden aria-live="polite"></div>
 
@@ -717,7 +755,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
       <span class="sig" data-content="histoire.signature">Le Macajou en est la signature béninoise.</span>
     </blockquote>
     <div class="hist-cta reveal d1">
-      <a class="btn-italic" href="#collection" data-content="histoire.cta" data-compose-coffret>Goûter cette histoire</a>
+      <a class="btn-italic" href="#collection" data-content="histoire.cta" data-compose-coffret>Je choisis mon coffret</a>
     </div>
   </div>
 </section>
@@ -739,12 +777,12 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
           <li><b data-content="entreprise.point2.valeur">Poudre de cajou</b><span data-content="entreprise.point2.label">Deux biscuits fondants</span></li>
           <li><b data-content="entreprise.point3.valeur">Saveurs locales</b><span data-content="entreprise.point3.label">Matières premières africaines</span></li>
         </ul>
-        <a class="btn-italic reveal d3" href="#collection" data-content="entreprise.cta" data-compose-coffret>Découvrir nos gourmandises</a>
+        <a class="btn-italic reveal d3" href="#collection" data-content="entreprise.cta" data-compose-coffret>Je choisis mon coffret</a>
       </div>
       <div class="ent-media reveal d1">
         <div class="ent-video">
           <video autoplay muted loop playsinline>
-            <source data-media="entreprise.video" src="/assets/adresses-boutique.mp4" type="video/mp4">
+            <source data-media="entreprise.video" src="/assets/entreprise-macajou.mp4" type="video/mp4">
           </video>
           <span class="ent-legende" data-content="entreprise.legende">La maison Macajou</span>
         </div>
@@ -762,7 +800,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
       <div class="dotline reveal d1" aria-hidden="true"></div>
       <p class="reveal d2" data-content="cadeaux.body1">Un anniversaire ? Un remerciement ? Des félicitations à transmettre ? Ou simplement l'envie de faire plaisir ?</p>
       <p class="reveal d2" style="margin-top:1rem" data-content="cadeaux.body2">Composez votre coffret gourmand Macajou, garni de nos créations emblématiques et rubané à votre nom. Facile à personnaliser, sur simple message WhatsApp.</p>
-      <a class="btn-italic reveal d3" href="/#collection" data-content="cadeaux.cta" data-compose-coffret>Je personnalise</a>
+      <a class="btn-italic reveal d3" href="/#collection" data-content="cadeaux.cta" data-compose-coffret>Je choisis mon coffret</a>
     </div>
   </div>
 </section>
@@ -949,7 +987,29 @@ if(histRoute){
 <script src="/js/site-media.js"></script>
 <script src="/js/site-content.js?v=20260802-macajou"></script>
 <script src="/js/club.js?v=20260802-notif-fix"></script>
-<script src="/js/landing.js?v=20260804-pyramides-modal-sm"></script>
+<script src="/js/landing.js?v=20260824-availability"></script>
+
+<div class="coffret-choice-modal" id="coffretChoiceModal" hidden aria-hidden="true">
+  <div class="coffret-choice-card" role="dialog" aria-modal="true" aria-labelledby="coffretChoiceTitle">
+    <button type="button" class="coffret-choice-close" data-close-coffret-choice aria-label="Fermer">✕</button>
+    <div class="coffret-choice-head">
+      <span class="sur">Votre coffret Macajou</span>
+      <h3 id="coffretChoiceTitle">Comment souhaitez-vous composer ?</h3>
+      <p id="coffretChoiceLead">La créatrice connaît les saveurs du moment — laissez-vous guider pour une sélection harmonieuse.</p>
+    </div>
+    <div class="coffret-choice-actions">
+      <button type="button" class="coffret-choice-btn is-trust" data-coffret-choice="trust">
+        <span class="coffret-choice-badge">Recommandé</span>
+        <strong>Faire confiance à la créatrice</strong>
+        <em>Une sélection équilibrée, prête à savourer</em>
+      </button>
+      <button type="button" class="coffret-choice-btn is-compose" data-coffret-choice="compose">
+        <strong>Composer mon coffret</strong>
+        <em>Choisissez chaque macajou vous-même</em>
+      </button>
+    </div>
+  </div>
+</div>
 
 <div class="pyramides-modal" id="pyramidesModal" hidden aria-hidden="true">
   <div class="pyramides-modal-card" role="dialog" aria-modal="true" aria-labelledby="pyramidesModalTitle">

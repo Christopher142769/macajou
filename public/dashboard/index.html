@@ -342,7 +342,7 @@
                 <label><input type="checkbox" id="pActive" checked> Actif</label>
                 <label><input type="checkbox" id="pFeatured"> Sélection du jour</label>
                 <label><input type="checkbox" id="pLimited"> Édition limitée</label>
-                <label><input type="checkbox" id="pInStock" checked> En stock</label>
+                <label><input type="checkbox" id="pInStock" checked> Disponible à la vente</label>
               </div>
             </div>
             <p class="field-hint" style="font-size:.85rem;opacity:.7;margin:-.4rem 0 1rem;line-height:1.4">Sélection du jour : affiché dans la rubrique e-shop (plusieurs possibles). Édition limitée : présentation spéciale occasions.</p>
@@ -442,7 +442,8 @@
             <div class="grid2">
               <div class="field"><label>Ordre</label><input id="mOrder" type="number" value="0"></div>
               <div class="field check">
-                <label><input type="checkbox" id="mActive" checked> Actif</label>
+                <label><input type="checkbox" id="mActive" checked> Actif (visible sur le site)</label>
+                <label><input type="checkbox" id="mAvailable" checked> Disponible à la composition</label>
               </div>
             </div>
             <p id="macajouError" class="err" hidden></p>
@@ -685,6 +686,6 @@
 </dialog>
 
 <div id="scrim" class="scrim" hidden></div>
-<script src="/dashboard/js/dashboard.js?v=20260804-capacity-free"></script>
+<script src="/dashboard/js/dashboard.js?v=20260824-availability"></script>
 </body>
 </html>

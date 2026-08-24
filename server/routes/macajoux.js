@@ -12,6 +12,8 @@ function toSlug(name) {
 function normalizeBody(body) {
   const data = { ...body };
   data.slug = data.slug || toSlug(data.name || '');
+  if (data.active != null) data.active = !!data.active;
+  if (data.available != null) data.available = !!data.available;
   return data;
 }
 
@@ -97,6 +99,7 @@ async function ensureDefaults() {
       slug: toSlug(names[i]),
       order: i,
       active: true,
+      available: true,
       description: `Macajou ${names[i].toLowerCase()} artisanal.`,
     });
   }

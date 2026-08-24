@@ -894,21 +894,25 @@ async function loadProducts() {
   }
   grid.innerHTML = products
     .map(
-      (p) => `
-    <article class="card">
+      (p) => {
+        const available = p.inStock !== false;
+        return `
+    <article class="card${available ? '' : ' is-unavailable'}">
       ${mediaThumb(p.images?.[0])}
       <div class="body">
         <h3>${escapeHtml(p.name)}</h3>
         <div class="meta">${formatPrice(p.price)} · ${escapeHtml(p.category)} · ${p.active ? 'Actif' : 'Masqué'}${
-          p.featured ? ' · ★ Sélection du jour' : ''
-        }${p.limitedEdition ? ' · Édition limitée' : ''}</div>
+          available ? ' · Disponible' : ' · Indisponible'
+        }${p.featured ? ' · ★ Sélection du jour' : ''}${p.limitedEdition ? ' · Édition limitée' : ''}</div>
         <div class="actions">
+          <button type="button" class="${available ? '' : 'is-off '}" data-toggle-stock="${p._id}" data-in-stock="${available ? '1' : '0'}">${available ? 'Rendre indisponible' : 'Rendre disponible'}</button>
           <button type="button" data-edit="${p._id}">Modifier</button>
           <button type="button" data-del="${p._id}">Supprimer</button>
           <a href="/produit.html?slug=${encodeURIComponent(p.slug)}" target="_blank">Fiche</a>
         </div>
       </div>
-    </article>`
+    </article>`;
+      }
     )
     .join('');
 }
@@ -918,8 +922,23 @@ function escapeHtml(s) {
 }
 
 document.getElementById('productsGrid').addEventListener('click', async (e) => {
+  const toggle = e.target.closest('[data-toggle-stock]');
   const edit = e.target.closest('[data-edit]');
   const del = e.target.closest('[data-del]');
+  if (toggle) {
+    const next = toggle.dataset.inStock !== '1';
+    try {
+      await api(`/api/products/${toggle.dataset.toggleStock}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ inStock: next }),
+      });
+      loadProducts();
+    } catch (ex) {
+      alert(ex.message || 'Impossible de mettre à jour la disponibilité');
+    }
+    return;
+  }
   if (edit) {
     const products = await api('/api/products/admin/all', { headers: authHeaders(false) });
     const p = products.find((x) => x._id === edit.dataset.edit);
@@ -1237,6 +1256,7 @@ function openMacajouDialog(m = null) {
   document.getElementById('mDesc').value = m?.description || '';
   document.getElementById('mOrder').value = m?.order ?? 0;
   document.getElementById('mActive').checked = m?.active !== false;
+  document.getElementById('mAvailable').checked = m?.available !== false;
   document.getElementById('mFile').value = '';
   editingMacajouImage = m?.image || '';
   renderMacajouPreview();
@@ -1250,17 +1270,23 @@ async function loadMacajoux() {
   grid.innerHTML =
     items
       .map(
-        (m) => `<article class="card">
+        (m) => {
+          const available = m.available !== false;
+          return `<article class="card${available ? '' : ' is-unavailable'}">
       ${mediaThumb(m.image)}
       <div class="body">
         <h3>${escapeHtml(m.name)}</h3>
-        <div class="meta">${escapeHtml(m.description || 'Macajou')} · ${m.active ? 'Actif' : 'Masqué'}</div>
+        <div class="meta">${escapeHtml(m.description || 'Macajou')} · ${m.active ? 'Actif' : 'Masqué'} · ${
+            available ? 'Disponible' : 'Indisponible'
+          }</div>
         <div class="actions">
+          <button type="button" class="${available ? '' : 'is-off '}" data-toggle-mac="${m._id}" data-available="${available ? '1' : '0'}">${available ? 'Rendre indisponible' : 'Rendre disponible'}</button>
           <button type="button" data-edit-mac="${m._id}">Modifier</button>
           <button type="button" data-del-mac="${m._id}">Supprimer</button>
         </div>
       </div>
-    </article>`
+    </article>`;
+        }
       )
       .join('') || '<p class="empty-state">Aucun macajou ,  ajoutez Chocolat, Pistache, etc.</p>';
 }
@@ -1276,8 +1302,23 @@ document.getElementById('mImagePreview')?.addEventListener('click', (e) => {
 });
 
 document.getElementById('macajouxGrid')?.addEventListener('click', async (e) => {
+  const toggle = e.target.closest('[data-toggle-mac]');
   const edit = e.target.closest('[data-edit-mac]');
   const del = e.target.closest('[data-del-mac]');
+  if (toggle) {
+    const next = toggle.dataset.available !== '1';
+    try {
+      await api(`/api/macajoux/${toggle.dataset.toggleMac}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify({ available: next }),
+      });
+      loadMacajoux();
+    } catch (ex) {
+      alert(ex.message || 'Impossible de mettre à jour la disponibilité');
+    }
+    return;
+  }
   if (edit) {
     const items = await api('/api/macajoux/admin/all', { headers: authHeaders(false) });
     const m = items.find((x) => x._id === edit.dataset.editMac);
@@ -1313,6 +1354,7 @@ macajouForm?.addEventListener('submit', async (e) => {
       image: editingMacajouImage,
       order: Number(document.getElementById('mOrder').value) || 0,
       active: document.getElementById('mActive').checked,
+      available: document.getElementById('mAvailable').checked,
     };
     const id = document.getElementById('macajouId').value;
     if (id) await api(`/api/macajoux/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });

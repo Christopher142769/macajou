@@ -133,7 +133,7 @@ module.exports = [
   { key: 'histoire.etape4.note', section: 'La Maison, Histoire', label: 'Étape 4, note', defaultValue: "La cajou remplace l'amande" },
   { key: 'histoire.quote', section: 'La Maison, Histoire', label: 'Citation', defaultValue: 'Le macaron est une histoire universelle.' },
   { key: 'histoire.signature', section: 'La Maison, Histoire', label: 'Signature', defaultValue: 'Le Macajou en est la signature béninoise.' },
-  { key: 'histoire.cta', section: 'La Maison, Histoire', label: 'Bouton', defaultValue: 'Goûter cette histoire' },
+  { key: 'histoire.cta', section: 'La Maison, Histoire', label: 'Bouton', defaultValue: 'Je choisis mon coffret' },
 
   // Entreprise
   { key: 'entreprise.eyebrow', section: 'Entreprise', label: 'Sur-titre', defaultValue: "L'entreprise" },
@@ -149,7 +149,7 @@ module.exports = [
   { key: 'entreprise.point3.label', section: 'Entreprise', label: 'Point 3, légende', defaultValue: 'Matières premières africaines' },
   { key: 'entreprise.badge', section: 'Entreprise', label: 'Étiquette vidéo', defaultValue: 'Fabriqué au Bénin' },
   { key: 'entreprise.legende', section: 'Entreprise', label: 'Légende vidéo', defaultValue: 'La maison Macajou' },
-  { key: 'entreprise.cta', section: 'Entreprise', label: 'Bouton', defaultValue: 'Découvrir nos gourmandises' },
+  { key: 'entreprise.cta', section: 'Entreprise', label: 'Bouton', defaultValue: 'Je choisis mon coffret' },
 
   // Coffret
   {
@@ -165,7 +165,7 @@ module.exports = [
     multiline: true,
     defaultValue: 'Composez votre\ncoffret',
   },
-  { key: 'coffret.cta', section: 'Coffret', label: 'Bouton', defaultValue: 'Je choisis' },
+  { key: 'coffret.cta', section: 'Coffret', label: 'Bouton', defaultValue: 'Je choisis mon coffret' },
 
   // Cadeaux
   {
@@ -191,7 +191,7 @@ module.exports = [
     defaultValue:
       'Composez votre coffret gourmand Macajou, garni de nos créations emblématiques et rubané à votre nom. Facile à personnaliser, sur simple message WhatsApp.',
   },
-  { key: 'cadeaux.cta', section: 'Cadeaux', label: 'Bouton', defaultValue: 'Je personnalise' },
+  { key: 'cadeaux.cta', section: 'Cadeaux', label: 'Bouton', defaultValue: 'Je choisis mon coffret' },
 
   // Adresses
   {

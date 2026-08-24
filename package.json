@@ -4,6 +4,7 @@
   "description": "Macajou Gourmandises — boutique, commandes & dashboard",
   "main": "server/index.js",
   "scripts": {
+    "build": "node -e \"console.log('Macajou: no frontend build step')\"",
     "start": "node server/index.js",
     "dev": "node --watch server/index.js",
     "seed": "node server/seed.js"

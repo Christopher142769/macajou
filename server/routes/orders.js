@@ -28,6 +28,9 @@ async function resolveComposition(raw, capacity) {
     if (!macajou || !macajou.active) {
       throw new Error(`Macajou indisponible : ${row.name || row.macajouId}`);
     }
+    if (macajou.available === false) {
+      throw new Error(`Saveur indisponible : ${macajou.name}`);
+    }
     totalPieces += qty;
     composition.push({
       macajou: macajou._id,
@@ -120,6 +123,9 @@ router.post('/', async (req, res) => {
       const product = await Product.findById(item.productId);
       if (!product || !product.active) {
         return res.status(400).json({ error: `Produit indisponible : ${item.name || item.productId}` });
+      }
+      if (product.inStock === false) {
+        return res.status(400).json({ error: `Produit en rupture : ${product.name}` });
       }
       const flavors = normalizeFlavors(item.flavors);
       const line = {

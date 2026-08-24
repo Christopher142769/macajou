@@ -7,6 +7,7 @@ const macajouSchema = new mongoose.Schema(
     image: { type: String, default: '' },
     description: { type: String, default: '' },
     active: { type: Boolean, default: true },
+    available: { type: Boolean, default: true },
     order: { type: Number, default: 0 },
   },
   { timestamps: true }
