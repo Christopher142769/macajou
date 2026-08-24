@@ -69,21 +69,46 @@ app.get('*', (req, res, next) => {
   res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
+async function connectMongo() {
+  const attempts = 8;
+  for (let i = 1; i <= attempts; i++) {
+    try {
+      await mongoose.connect(config.mongoUri, {
+        serverSelectionTimeoutMS: 8000,
+      });
+      console.log('MongoDB connecté');
+      await ensureDefaultAdmin();
+      console.log(`Administrateur synchronisé : ${config.adminEmail}`);
+      await siteMediaRoutes.ensureSlots();
+      await siteContentRoutes.ensureSlots();
+      await categoryRoutes.ensureDefaults();
+      await coffretRoutes.ensureDefaults();
+      await macajouRoutes.ensureDefaults();
+      await clubRoutes.ensureDefaults();
+      return true;
+    } catch (err) {
+      console.error(`MongoDB tentative ${i}/${attempts} :`, err.message);
+      if (i < attempts) await new Promise((r) => setTimeout(r, 1500 * i));
+    }
+  }
+  return false;
+}
+
 async function start() {
-  await mongoose.connect(config.mongoUri);
-  console.log('MongoDB connecté');
-  await ensureDefaultAdmin();
-  console.log(`Administrateur synchronisé : ${config.adminEmail}`);
-  await siteMediaRoutes.ensureSlots();
-  await siteContentRoutes.ensureSlots();
-  await categoryRoutes.ensureDefaults();
-  await coffretRoutes.ensureDefaults();
-  await macajouRoutes.ensureDefaults();
-  await clubRoutes.ensureDefaults();
-  app.listen(config.port, () => {
-    console.log(`Macajou → http://localhost:${config.port}`);
-    console.log(`Dashboard → http://localhost:${config.port}/dashboard/`);
+  const host = process.env.HOST || '0.0.0.0';
+  await new Promise((resolve, reject) => {
+    const server = app.listen(config.port, host, () => {
+      console.log(`Macajou → http://${host}:${config.port}`);
+      console.log(`Dashboard → http://${host}:${config.port}/dashboard/`);
+      resolve(server);
+    });
+    server.on('error', reject);
   });
+
+  const ok = await connectMongo();
+  if (!ok) {
+    console.error('MongoDB indisponible : le site statique tourne, les API échoueront jusqu’à reconnexion.');
+  }
 }
 
 start().catch((err) => {
