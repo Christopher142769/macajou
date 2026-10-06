@@ -24,7 +24,7 @@ async function createPaymentLink({ order, customer }) {
   const amount = Math.round(Number(order.total) || 0);
   if (amount < 1) throw new Error('Montant de paiement invalide');
 
-  const callbackUrl = `${config.appUrl.replace(/\/$/, '')}/panier.html?paid=1&order=${encodeURIComponent(order.orderNumber)}`;
+  const callbackUrl = `${config.appUrl.replace(/\/$/, '')}/remerciements?paid=1&order=${encodeURIComponent(order.orderNumber)}`;
 
   const phoneDigits = String(customer.phone || '').replace(/\D/g, '');
   const phoneNumber = phoneDigits.replace(/^229/, '') || phoneDigits;

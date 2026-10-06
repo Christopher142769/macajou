@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="/assets/logo-macajou.png">
+<link rel="apple-touch-icon" href="/assets/logo-macajou.png">
+<title>Remerciements — Macajou Gourmandises</title>
+<meta name="description" content="Merci pour votre commande Macajou. Nous préparons vos gourmandises avec soin.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&family=Pinyon+Script&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/shop.css">
+<style>
+.thanks{min-height:70vh;display:flex;align-items:center;justify-content:center;padding:2rem 0 4rem}
+.thanks-card{width:min(640px,100%);text-align:center;padding:2.6rem 1.8rem 2.4rem;background:linear-gradient(165deg,#fffdf8 0%,#f3e8d4 55%,#efe0c8 100%);border:1px solid rgba(28,22,17,.08);position:relative;overflow:hidden}
+.thanks-card::before{content:"";position:absolute;inset:12px;border:1px solid rgba(181,18,27,.18);pointer-events:none}
+.thanks-mark{margin:0 auto 1.35rem;display:grid;place-items:center}
+.thanks-mark img{width:min(180px,46vw);height:auto;display:block}
+.thanks-eyebrow{font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.55rem}
+.thanks-script{font-family:var(--script);font-size:clamp(2.4rem,6vw,3.4rem);color:var(--rouge);line-height:1;margin-bottom:.35rem}
+.thanks h1{font-family:var(--display);font-size:clamp(1.7rem,3.5vw,2.3rem);font-weight:500;text-transform:uppercase;letter-spacing:.04em;margin-bottom:.8rem}
+.thanks-msg{opacity:.8;line-height:1.6;max-width:38ch;margin:0 auto 1.2rem}
+.thanks-order{display:inline-block;padding:.55rem 1rem;border:1px solid rgba(28,22,17,.12);background:rgba(251,245,232,.85);font-family:var(--display);font-size:1.15rem;letter-spacing:.04em;margin-bottom:1.6rem}
+.thanks-actions{display:flex;flex-wrap:wrap;gap:.75rem;justify-content:center}
+</style>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1797154881433769');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1797154881433769&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+</head>
+<body>
+<div class="shop-top">Merci pour votre confiance — Macajou Gourmandises</div>
+<header class="shop-nav">
+  <nav class="links left">
+    <a href="/">← Accueil</a>
+    <a href="/#collection">E-Shop</a>
+  </nav>
+  <a class="logo" href="/" aria-label="Macajou, Accueil">
+    <img src="/assets/logo-macajou.png" alt="Macajou">
+  </a>
+  <nav class="links right">
+    <a class="shop-home" href="/">Retour à l'accueil</a>
+    <a href="/panier.html" class="cart-link" aria-label="Panier">
+      Panier
+      <span class="cart-count" data-cart-count hidden>0</span>
+    </a>
+  </nav>
+</header>
+
+<main class="shop-wrap">
+  <section class="thanks" aria-live="polite">
+    <div class="thanks-card">
+      <div class="thanks-mark"><img src="/assets/logo-macajou.png" alt=""></div>
+      <p class="thanks-eyebrow">Macajou</p>
+      <p class="thanks-script">Merci</p>
+      <h1 id="thanksTitle">Commande reçue</h1>
+      <p class="thanks-msg" id="thanksMsg">Nous préparons votre commande avec soin et vous contactons rapidement pour confirmer.</p>
+      <div class="thanks-order" id="thanksOrder" hidden></div>
+      <div class="thanks-actions">
+        <a class="btn btn-rouge" href="/">Retour à l’accueil</a>
+        <a class="btn btn-outline" href="/#collection">Continuer les achats</a>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="/js/cart.js?v=20260804-limited-photo"></script>
+<script>
+(function () {
+  const params = new URLSearchParams(location.search);
+  const orderNumber = params.get('order') || '';
+  const paid = params.get('paid') === '1';
+  const customMsg = params.get('msg') || '';
+  const msgEl = document.getElementById('thanksMsg');
+  const orderEl = document.getElementById('thanksOrder');
+  const titleEl = document.getElementById('thanksTitle');
+
+  if (window.Cart?.clear && (orderNumber || paid)) {
+    try { window.Cart.clear(); } catch (_) {}
+  }
+  window.Cart?.updateBadges?.();
+
+  if (orderNumber) {
+    orderEl.hidden = false;
+    orderEl.textContent = orderNumber;
+  }
+
+  if (customMsg) {
+    msgEl.textContent = customMsg;
+  } else if (paid) {
+    titleEl.textContent = 'Paiement en cours';
+    msgEl.textContent = 'Paiement en cours de confirmation…';
+  }
+
+  function firePurchase(order) {
+    if (typeof fbq !== 'function') return;
+    const key = 'macajou_fb_purchase_' + (order?.orderNumber || orderNumber || '');
+    if (!orderNumber || sessionStorage.getItem(key)) return;
+    const value = Number(order?.total);
+    const payload = Number.isFinite(value) && value > 0
+      ? { value, currency: 'XOF', content_name: order.orderNumber }
+      : { content_name: orderNumber };
+    fbq('track', 'Purchase', payload);
+    sessionStorage.setItem(key, '1');
+  }
+
+  async function syncPaidOrder() {
+    if (!paid || !orderNumber) {
+      if (orderNumber && !paid) firePurchase({ orderNumber, total: Number(params.get('total')) || 0 });
+      return;
+    }
+    try {
+      await fetch('/api/payments/fedapay/sync/' + encodeURIComponent(orderNumber), { method: 'POST' });
+      const res = await fetch('/api/orders/by-number/' + encodeURIComponent(orderNumber));
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Commande introuvable');
+      if (data.paymentStatus === 'paid') {
+        titleEl.textContent = 'Paiement confirmé';
+        msgEl.textContent = 'Paiement confirmé. Merci ! Nous préparons votre commande avec soin.';
+        firePurchase(data);
+      } else if (data.paymentStatus === 'failed') {
+        titleEl.textContent = 'Paiement non abouti';
+        msgEl.textContent = 'Le paiement n’a pas abouti. Vous pouvez réessayer ou choisir le paiement à la livraison.';
+      } else {
+        titleEl.textContent = 'Commande enregistrée';
+        msgEl.textContent = 'Commande enregistrée. Si vous venez de payer, la confirmation peut prendre quelques instants.';
+        firePurchase(data);
+      }
+    } catch (err) {
+      titleEl.textContent = 'Commande enregistrée';
+      msgEl.textContent = 'Commande enregistrée. ' + (err.message || '');
+    }
+  }
+
+  syncPaidOrder();
+})();
+</script>
+</body>
+</html>

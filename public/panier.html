@@ -129,21 +129,6 @@ src="https://www.facebook.com/tr?id=1797154881433769&ev=PageView&noscript=1"
 </header>
 
 <main class="shop-wrap">
-  <div id="success" class="success">
-    <div class="success-card">
-      <div class="success-mark"><img src="/assets/logo-macajou.png" alt=""></div>
-      <p class="success-eyebrow">Macajou</p>
-      <p class="success-script">Merci</p>
-      <h2>Commande reçue</h2>
-      <p class="success-msg" id="successMsg">Nous préparons votre commande avec soin et vous contactons rapidement pour confirmer.</p>
-      <div class="success-order" id="successOrder" hidden></div>
-      <div class="success-actions">
-        <a class="btn btn-rouge" href="/">Retour à l’accueil</a>
-        <a class="btn btn-outline" href="/#collection">Continuer les achats</a>
-      </div>
-    </div>
-  </div>
-
   <div id="checkout">
     <h1>Votre panier</h1>
     <p class="cart-lead">Vérifiez votre sélection, puis finalisez ou continuez vos achats.</p>
@@ -465,20 +450,13 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
-function showSuccess(msg, orderNumber){
+function showSuccess(msg, orderNumber, total){
   closeCheckout();
-  document.getElementById('checkout').hidden = true;
-  const success = document.getElementById('success');
-  success.classList.add('show');
-  document.getElementById('successMsg').textContent = msg;
-  const orderEl = document.getElementById('successOrder');
-  if (orderNumber) {
-    orderEl.hidden = false;
-    orderEl.textContent = orderNumber;
-  } else {
-    orderEl.hidden = true;
-  }
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  const q = new URLSearchParams();
+  if (orderNumber) q.set('order', orderNumber);
+  if (msg) q.set('msg', msg);
+  if (total != null && Number(total) > 0) q.set('total', String(Number(total)));
+  location.href = '/remerciements' + (q.toString() ? `?${q}` : '');
 }
 
 linesEl.addEventListener('click', (e)=>{
@@ -536,36 +514,13 @@ async function checkOnlineAvailability(){
   }
 }
 
-async function handlePaidReturn(){
+function handlePaidReturn(){
   if(params.get('paid') !== '1') return;
   const orderNumber = params.get('order');
-  if(!orderNumber) return;
-
-  Cart.clear();
-  document.getElementById('checkout').hidden = true;
-  const success = document.getElementById('success');
-  success.classList.add('show');
-  const msg = document.getElementById('successMsg');
-  const orderEl = document.getElementById('successOrder');
-  orderEl.hidden = false;
-  orderEl.textContent = orderNumber;
-  msg.textContent = `Paiement en cours de confirmation…`;
-
-  try{
-    await fetch(`/api/payments/fedapay/sync/${encodeURIComponent(orderNumber)}`, { method: 'POST' });
-    const res = await fetch(`/api/orders/by-number/${encodeURIComponent(orderNumber)}`);
-    const data = await res.json();
-    if(!res.ok) throw new Error(data.error || 'Commande introuvable');
-    if(data.paymentStatus === 'paid'){
-      msg.textContent = `Paiement confirmé. Merci ! Nous préparons votre commande avec soin.`;
-    } else if(data.paymentStatus === 'failed'){
-      msg.textContent = `Le paiement n’a pas abouti. Vous pouvez réessayer ou choisir le paiement à la livraison.`;
-    } else {
-      msg.textContent = `Commande enregistrée. Si vous venez de payer, la confirmation peut prendre quelques instants.`;
-    }
-  }catch(err){
-    msg.textContent = `Commande enregistrée. ${err.message}`;
-  }
+  const q = new URLSearchParams();
+  q.set('paid', '1');
+  if (orderNumber) q.set('order', orderNumber);
+  location.replace('/remerciements?' + q.toString());
 }
 
 form.addEventListener('submit', async (e)=>{
@@ -626,7 +581,8 @@ form.addEventListener('submit', async (e)=>{
       : `une livraison à ${payload.customer.city}`;
     showSuccess(
       `Nous vous appelons au ${payload.customer.phone} pour confirmer ${where}.`,
-      order.orderNumber
+      order.orderNumber,
+      order.total
     );
   }catch(err){
     formError.hidden = false;

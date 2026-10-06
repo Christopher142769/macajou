@@ -62,6 +62,10 @@ app.get(['/club', '/club-macajou'], (_req, res) => {
   res.sendFile(path.join(__dirname, '../public/club.html'));
 });
 
+app.get(['/remerciements', '/remerciements.html'], (_req, res) => {
+  res.sendFile(path.join(__dirname, '../public/remerciements.html'));
+});
+
 app.get('*', (req, res, next) => {
   if (req.path.startsWith('/api/') || req.path.startsWith('/uploads/')) return next();
   if (req.path.startsWith('/dashboard')) return next();
