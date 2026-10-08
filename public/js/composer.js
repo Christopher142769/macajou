@@ -106,8 +106,8 @@
         ? `Choisissez exactement ${coffret.capacity} macajoux pour remplir cette pyramide.`
         : `Choisissez exactement ${coffret.capacity} macajoux pour remplir ce coffret.`,
       trustToggleHint: pyramid
-        ? 'Elle compose la pyramide pour vous — les saveurs se masquent.'
-        : 'Elle compose le coffret pour vous — les saveurs se masquent.',
+        ? 'Recommandé : elle équilibre la pyramide pour vous, sans rien composer.'
+        : 'Recommandé : elle équilibre les saveurs pour vous, sans rien composer.',
       afterEyebrow: pyramid ? 'Pyramide ajoutée' : 'Coffret ajouté',
       toastOk: pyramid ? 'Pyramide ajoutée au panier' : 'Coffret ajouté au panier',
     };
@@ -267,6 +267,7 @@
             ? ''
             : `<label class="trust-toggle" for="trustToggle">
           <span class="trust-toggle-text">
+            <span class="trust-badge">Recommandé</span>
             <strong>Faire confiance à la créatrice</strong>
             <em>${esc(meta.trustToggleHint)}</em>
           </span>

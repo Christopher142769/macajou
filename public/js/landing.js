@@ -108,8 +108,8 @@
     const lead = document.getElementById('coffretChoiceLead');
     if (lead) {
       lead.textContent = pendingSlug
-        ? 'Pour ce coffret, confiez la sélection à la créatrice ou composez chaque macajou à votre goût.'
-        : 'La créatrice connaît les saveurs du moment — laissez-vous guider pour une sélection harmonieuse.';
+        ? 'Pour ce coffret, le plus simple est de laisser la créatrice équilibrer les saveurs. Vous n’avez rien à composer.'
+        : 'Elle connaît les saveurs du moment. Laissez-la composer pour vous : c’est plus simple, et souvent plus juste.';
     }
     modal.hidden = false;
     modal.setAttribute('aria-hidden', 'false');

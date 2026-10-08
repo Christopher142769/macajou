@@ -527,7 +527,7 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
 @media(max-width:640px){.pyramides-modal-card{padding:1.05rem .9rem 1.15rem;max-height:min(84vh,720px)}}
 .coffret-choice-modal{position:fixed;inset:0;z-index:410;display:grid;place-items:center;padding:1rem;background:rgba(28,22,17,.58);opacity:0;pointer-events:none;transition:opacity .28s}
 .coffret-choice-modal.is-open{opacity:1;pointer-events:auto}
-.coffret-choice-card{width:min(480px,100%);background:linear-gradient(180deg,#fffdf8 0%,var(--creme) 100%);border:1px solid rgba(28,22,17,.1);padding:1.5rem 1.35rem 1.45rem;position:relative;box-shadow:0 28px 70px rgba(28,22,17,.32)}
+.coffret-choice-card{width:min(520px,100%);background:linear-gradient(180deg,#fffdf8 0%,var(--creme) 100%);border:1px solid rgba(28,22,17,.1);padding:1.5rem 1.35rem 1.45rem;position:relative;box-shadow:0 28px 70px rgba(28,22,17,.32)}
 .coffret-choice-close{position:absolute;top:.65rem;right:.65rem;width:36px;height:36px;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:1.1rem;line-height:1}
 .coffret-choice-head{text-align:center;max-width:34ch;margin:0 auto 1.35rem;padding-top:.25rem}
 .coffret-choice-head .sur{display:block;font-size:.68rem;letter-spacing:.18em;text-transform:uppercase;color:var(--brun);margin-bottom:.35rem}
@@ -544,17 +544,28 @@ button.btn-italic{font:inherit;cursor:pointer;appearance:none;-webkit-appearance
 .coffret-choice-btn:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(28,22,17,.08)}
 .coffret-choice-btn.is-trust{
   position:relative;border-color:var(--rouge);background:var(--rouge);color:var(--creme);
-  padding:1.15rem 1.1rem 1.05rem;box-shadow:0 16px 36px -10px rgba(181,18,27,.55)
+  padding:1.35rem 1.2rem 1.25rem;box-shadow:0 18px 40px -10px rgba(181,18,27,.6);
+  animation:choicePulse 2.2s ease-in-out infinite
 }
-.coffret-choice-btn.is-trust em{opacity:.88;color:var(--creme)}
-.coffret-choice-btn.is-trust:hover{background:var(--rouge-sombre);border-color:var(--rouge-sombre);box-shadow:0 18px 42px -8px rgba(181,18,27,.65)}
+.coffret-choice-btn.is-trust strong{font-size:1.28rem;letter-spacing:.03em}
+.coffret-choice-btn.is-trust em{opacity:.92;color:var(--creme);font-size:.92rem}
+.coffret-choice-btn.is-trust:hover{background:var(--rouge-sombre);border-color:var(--rouge-sombre);box-shadow:0 18px 42px -8px rgba(181,18,27,.65);animation:none}
 .coffret-choice-badge{
-  display:inline-block;font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;
-  background:rgba(251,245,232,.22);border:1px solid rgba(251,245,232,.35);
-  padding:.22rem .55rem;margin-bottom:.35rem;font-weight:500
+  display:inline-block;font-size:.64rem;letter-spacing:.16em;text-transform:uppercase;
+  background:#FFDE8F;border:none;color:var(--encre);
+  padding:.28rem .65rem;margin-bottom:.45rem;font-weight:500
 }
-.coffret-choice-btn.is-compose strong{color:var(--encre)}
-.coffret-choice-btn.is-compose:hover{border-color:var(--encre);background:var(--creme-2)}
+.coffret-choice-btn.is-compose{
+  border:none;background:transparent;box-shadow:none;padding:.35rem .2rem;align-items:center;text-align:center
+}
+.coffret-choice-btn.is-compose strong{font-family:var(--body);font-size:.82rem;font-weight:400;letter-spacing:.02em;text-transform:none;text-decoration:underline;color:var(--encre);opacity:.7}
+.coffret-choice-btn.is-compose em{display:none}
+.coffret-choice-btn.is-compose:hover{transform:none;box-shadow:none;background:transparent}
+@keyframes choicePulse{
+  0%,100%{box-shadow:0 16px 36px -12px rgba(181,18,27,.45)}
+  50%{box-shadow:0 18px 46px -6px rgba(181,18,27,.75)}
+}
+@media(prefers-reduced-motion:reduce){.coffret-choice-btn.is-trust{animation:none}}
 @media(max-width:640px){.coffret-choice-card{padding:1.25rem 1rem 1.3rem}}
 
 
@@ -1005,25 +1016,25 @@ if(histRoute){
 <script src="/js/site-media.js"></script>
 <script src="/js/site-content.js?v=20260802-macajou"></script>
 <script src="/js/club.js?v=20260802-notif-fix"></script>
-<script src="/js/landing.js?v=20260824-availability"></script>
+<script src="/js/landing.js?v=20261008-trust-cta"></script>
 
 <div class="coffret-choice-modal" id="coffretChoiceModal" hidden aria-hidden="true">
   <div class="coffret-choice-card" role="dialog" aria-modal="true" aria-labelledby="coffretChoiceTitle">
     <button type="button" class="coffret-choice-close" data-close-coffret-choice aria-label="Fermer">✕</button>
     <div class="coffret-choice-head">
-      <span class="sur">Votre coffret Macajou</span>
-      <h3 id="coffretChoiceTitle">Comment souhaitez-vous composer ?</h3>
-      <p id="coffretChoiceLead">La créatrice connaît les saveurs du moment — laissez-vous guider pour une sélection harmonieuse.</p>
+      <span class="sur">Le choix le plus simple</span>
+      <h3 id="coffretChoiceTitle">Laissez la créatrice choisir</h3>
+      <p id="coffretChoiceLead">Elle équilibre les saveurs pour vous. Vous n’avez rien à composer : le coffret est prêt en un clic.</p>
     </div>
     <div class="coffret-choice-actions">
       <button type="button" class="coffret-choice-btn is-trust" data-coffret-choice="trust">
         <span class="coffret-choice-badge">Recommandé</span>
         <strong>Faire confiance à la créatrice</strong>
-        <em>Une sélection équilibrée, prête à savourer</em>
+        <em>La sélection la plus harmonieuse — c’est le choix que nous conseillons</em>
       </button>
       <button type="button" class="coffret-choice-btn is-compose" data-coffret-choice="compose">
-        <strong>Composer mon coffret</strong>
-        <em>Choisissez chaque macajou vous-même</em>
+        <strong>Je préfère composer moi-même</strong>
+        <em>Choisir chaque macajou</em>
       </button>
     </div>
   </div>

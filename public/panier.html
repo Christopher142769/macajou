@@ -234,11 +234,11 @@ src="https://www.facebook.com/tr?id=1797154881433769&ev=PageView&noscript=1"
       <div class="step" data-step="4">
         <div class="step-head">
           <p class="step-kicker">Étape 4</p>
-          <p class="step-q">Nous aurons peut-être besoin de vous appeler. Avez-vous un numéro béninois à communiquer&nbsp;? Sinon un numéro WhatsApp.</p>
+          <p class="step-q">Votre numéro WhatsApp, pour confirmer la commande.</p>
         </div>
         <div class="field">
-          <label for="phone">Téléphone / WhatsApp</label>
-          <input id="phone" name="phone" type="tel" required placeholder="ex. 01 XX XX XX XX" autocomplete="tel">
+          <label for="phone">Numéro WhatsApp</label>
+          <input id="phone" name="phone" type="tel" required placeholder="ex. 01 XX XX XX XX" autocomplete="tel" inputmode="tel">
         </div>
         <div class="step-nav">
           <button type="button" class="btn btn-outline" data-prev>Retour</button>
@@ -370,7 +370,7 @@ function validateStep(n){
   if (n === 4) {
     if (!form.phone.value.trim()) {
       formError.hidden = false;
-      formError.textContent = 'Indiquez un numéro de téléphone ou WhatsApp.';
+      formError.textContent = 'Indiquez votre numéro WhatsApp.';
       return false;
     }
   }
