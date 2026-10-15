@@ -56,9 +56,10 @@ const orderSchema = new mongoose.Schema(
       default: 'not_required',
     },
     fedapayTransactionId: { type: String, default: '' },
+    stockRestored: { type: Boolean, default: false },
     status: {
       type: String,
-      enum: ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'],
+      enum: ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée', 'injoignable'],
       default: 'reçue',
     },
   },

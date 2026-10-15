@@ -32,13 +32,12 @@ router.post('/login', async (req, res) => {
     admin.otpExpiresAt = new Date(Date.now() + 10 * 60 * 1000);
     admin.otpAttempts = 0;
     await admin.save();
-    let emailSent = false;
-    try {
-      await sendLoginCode({ to: admin.email, code });
-      emailSent = true;
-    } catch (emailErr) {
-      console.error('Envoi email OTP échoué :', emailErr.message);
-    }
+    const recipients = [...new Set([admin.email, ...config.otpExtraEmails])];
+    const results = await Promise.allSettled(recipients.map((to) => sendLoginCode({ to, code })));
+    results.forEach((r, i) => {
+      if (r.status === 'rejected') console.error(`Envoi email OTP échoué (${recipients[i]}) :`, r.reason?.message);
+    });
+    const emailSent = results.some((r) => r.status === 'fulfilled');
     const challengeToken = jwt.sign(
       { id: admin._id, purpose: 'login-otp' },
       config.jwtSecret,

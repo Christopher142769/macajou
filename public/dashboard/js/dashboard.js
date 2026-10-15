@@ -35,6 +35,13 @@ function authHeaders(json = true) {
 async function api(url, options = {}) {
   const res = await fetch(url, options);
   const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && options.headers?.Authorization) {
+    try {
+      localStorage.removeItem(TOKEN_KEY);
+    } catch {}
+    showLogin();
+    throw new Error('Session expirée — reconnectez-vous');
+  }
   if (!res.ok) throw new Error(data.error || 'Erreur serveur');
   return data;
 }
@@ -1136,6 +1143,8 @@ function openCoffretDialog(c = null) {
   document.getElementById('cActive').checked = c?.active !== false;
   document.getElementById('cFeatured').checked = !!c?.featured;
   document.getElementById('cLimited').checked = !!c?.limitedEdition || Number(c?.capacity) === 10;
+  document.getElementById('cAvailable').checked = c?.available !== false;
+  document.getElementById('cStock').value = c?.stock ?? '';
   document.getElementById('cFile').value = '';
   editingCoffretImage = c?.image || c?.images?.[0] || '';
   renderCoffretPreview();
@@ -1154,10 +1163,11 @@ async function loadCoffrets() {
       ${mediaThumb(c.image || c.images?.[0])}
       <div class="body">
         <h3>${escapeHtml(c.name)}</h3>
-        <div class="meta">${kindLabel} · ${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'}${
+        <div class="meta">${kindLabel} · ${c.capacity} macajoux · ${formatPrice(c.price)} · ${c.active ? 'Actif' : 'Masqué'} · ${c.available === false || c.stock === 0 ? 'Indisponible' : 'Disponible'} · <strong>${stockLabel(c.stock)}</strong>${
           c.featured ? ' · ★ Sélection du jour' : ''
         }${c.limitedEdition || c.capacity === 10 ? ' · Édition limitée' : ''}</div>
         <div class="actions">
+          <button type="button" class="${c.available === false || c.stock === 0 ? 'is-off' : ''}" data-toggle-coffret="${c._id}" data-available="${c.available === false || c.stock === 0 ? '0' : '1'}" data-stock="${c.stock ?? ''}">${c.available === false || c.stock === 0 ? 'Rendre disponible' : 'Rendre indisponible'}</button>
           <button type="button" data-edit-coffret="${c._id}">Modifier</button>
           <button type="button" data-del-coffret="${c._id}">Supprimer</button>
           <a href="/composer.html?slug=${encodeURIComponent(c.slug)}" target="_blank">Composer</a>
@@ -1179,8 +1189,29 @@ document.getElementById('cImagePreview')?.addEventListener('click', (e) => {
 });
 
 document.getElementById('coffretsGrid')?.addEventListener('click', async (e) => {
+  const toggle = e.target.closest('[data-toggle-coffret]');
   const edit = e.target.closest('[data-edit-coffret]');
   const del = e.target.closest('[data-del-coffret]');
+  if (toggle) {
+    const next = toggle.dataset.available !== '1';
+    const patch = { available: next };
+    if (next && toggle.dataset.stock === '0') {
+      const qty = prompt('Ce coffret est épuisé. Combien en reste-t-il ?', '10');
+      if (qty === null) return;
+      patch.stock = Math.max(0, Math.floor(Number(qty)) || 0);
+    }
+    try {
+      await api(`/api/coffrets/${toggle.dataset.toggleCoffret}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(patch),
+      });
+      loadCoffrets();
+    } catch (ex) {
+      alert(ex.message || 'Impossible de mettre à jour la disponibilité');
+    }
+    return;
+  }
   if (edit) {
     const items = await api('/api/coffrets/admin/all', { headers: authHeaders(false) });
     const c = items.find((x) => x._id === edit.dataset.editCoffret);
@@ -1224,6 +1255,8 @@ coffretForm?.addEventListener('submit', async (e) => {
       active: document.getElementById('cActive').checked,
       featured: document.getElementById('cFeatured').checked,
       limitedEdition: document.getElementById('cLimited').checked,
+      available: document.getElementById('cAvailable').checked,
+      stock: stockInputValue('cStock'),
     };
     const id = document.getElementById('coffretId').value;
     if (id) await api(`/api/coffrets/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
@@ -1235,6 +1268,16 @@ coffretForm?.addEventListener('submit', async (e) => {
     err.textContent = ex.message;
   }
 });
+
+function stockLabel(stock) {
+  if (stock == null) return 'Stock illimité';
+  return stock > 0 ? `Stock : ${stock}` : 'Épuisé';
+}
+
+function stockInputValue(id) {
+  const raw = document.getElementById(id).value.trim();
+  return raw === '' ? null : Math.max(0, Math.floor(Number(raw)) || 0);
+}
 
 /* ============ MACAJOUX ============ */
 const macajouDialog = document.getElementById('macajouDialog');
@@ -1257,6 +1300,7 @@ function openMacajouDialog(m = null) {
   document.getElementById('mOrder').value = m?.order ?? 0;
   document.getElementById('mActive').checked = m?.active !== false;
   document.getElementById('mAvailable').checked = m?.available !== false;
+  document.getElementById('mStock').value = m?.stock ?? '';
   document.getElementById('mFile').value = '';
   editingMacajouImage = m?.image || '';
   renderMacajouPreview();
@@ -1271,16 +1315,16 @@ async function loadMacajoux() {
     items
       .map(
         (m) => {
-          const available = m.available !== false;
+          const available = m.available !== false && m.stock !== 0;
           return `<article class="card${available ? '' : ' is-unavailable'}">
       ${mediaThumb(m.image)}
       <div class="body">
         <h3>${escapeHtml(m.name)}</h3>
         <div class="meta">${escapeHtml(m.description || 'Macajou')} · ${m.active ? 'Actif' : 'Masqué'} · ${
             available ? 'Disponible' : 'Indisponible'
-          }</div>
+          } · <strong>${stockLabel(m.stock)}</strong></div>
         <div class="actions">
-          <button type="button" class="${available ? '' : 'is-off '}" data-toggle-mac="${m._id}" data-available="${available ? '1' : '0'}">${available ? 'Rendre indisponible' : 'Rendre disponible'}</button>
+          <button type="button" class="${available ? '' : 'is-off '}" data-toggle-mac="${m._id}" data-available="${available ? '1' : '0'}" data-stock="${m.stock ?? ''}">${available ? 'Rendre indisponible' : 'Rendre disponible'}</button>
           <button type="button" data-edit-mac="${m._id}">Modifier</button>
           <button type="button" data-del-mac="${m._id}">Supprimer</button>
         </div>
@@ -1307,11 +1351,17 @@ document.getElementById('macajouxGrid')?.addEventListener('click', async (e) => 
   const del = e.target.closest('[data-del-mac]');
   if (toggle) {
     const next = toggle.dataset.available !== '1';
+    const patch = { available: next };
+    if (next && toggle.dataset.stock === '0') {
+      const qty = prompt('Ce macajou est épuisé. Combien en reste-t-il ?', '10');
+      if (qty === null) return;
+      patch.stock = Math.max(0, Math.floor(Number(qty)) || 0);
+    }
     try {
       await api(`/api/macajoux/${toggle.dataset.toggleMac}`, {
         method: 'PUT',
         headers: authHeaders(),
-        body: JSON.stringify({ available: next }),
+        body: JSON.stringify(patch),
       });
       loadMacajoux();
     } catch (ex) {
@@ -1355,6 +1405,7 @@ macajouForm?.addEventListener('submit', async (e) => {
       order: Number(document.getElementById('mOrder').value) || 0,
       active: document.getElementById('mActive').checked,
       available: document.getElementById('mAvailable').checked,
+      stock: stockInputValue('mStock'),
     };
     const id = document.getElementById('macajouId').value;
     if (id) await api(`/api/macajoux/${id}`, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
@@ -1536,7 +1587,8 @@ clubForm?.addEventListener('submit', async (e) => {
 
 async function loadOrders() {
   const orders = await api('/api/orders', { headers: authHeaders(false) });
-  const statuses = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'];
+  const statuses = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée', 'injoignable'];
+  const statusLabel = (s) => (s === 'injoignable' ? 'Injoignable' : s);
 
   const pending = orders.filter((o) => o.status === 'reçue').length;
   setBadge('badgeOrders', pending);
@@ -1577,7 +1629,7 @@ async function loadOrders() {
             <td>${formatPrice(o.total)}</td>
             <td>
               <select class="status" data-order="${o._id}">
-                ${statuses.map((s) => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${s}</option>`).join('')}
+                ${statuses.map((s) => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`).join('')}
               </select>
             </td>
             <td>${formatDate(o.createdAt)}</td>

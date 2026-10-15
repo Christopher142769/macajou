@@ -155,8 +155,8 @@ async function buildReport(query) {
 
   const orders = filterByProduct(rawOrders, productId);
   const previous = filterByProduct(rawPrevious, productId);
-  const validOrders = orders.filter((o) => o.status !== 'annulée');
-  const validPrevious = previous.filter((o) => o.status !== 'annulée');
+  const validOrders = orders.filter((o) => !['annulée', 'injoignable'].includes(o.status));
+  const validPrevious = previous.filter((o) => !['annulée', 'injoignable'].includes(o.status));
   const revenue = validOrders.reduce((sum, o) => sum + orderRevenue(o, productId), 0);
   const previousRevenue = validPrevious.reduce((sum, o) => sum + orderRevenue(o, productId), 0);
   const itemsSold = validOrders.reduce(
@@ -168,10 +168,10 @@ async function buildReport(query) {
     city,
     count: orders.filter((o) => o.customer?.city === city).length,
     revenue: orders
-      .filter((o) => o.customer?.city === city && o.status !== 'annulée')
+      .filter((o) => o.customer?.city === city && !['annulée', 'injoignable'].includes(o.status))
       .reduce((sum, o) => sum + orderRevenue(o, productId), 0),
   }));
-  const statusList = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée'];
+  const statusList = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée', 'injoignable'];
   const byStatus = statusList.map((status) => ({
     status,
     count: orders.filter((o) => o.status === status).length,

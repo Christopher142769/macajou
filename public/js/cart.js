@@ -189,18 +189,28 @@ const Cart = (() => {
       : [];
     const cap = Math.max(0, Number(capacity) || 0);
     if (!list.length || !cap) return [];
-    const base = Math.floor(cap / list.length);
-    let rem = cap % list.length;
+    // Un par un, en tournant, sans dépasser le stock de chaque saveur.
+    const counts = list.map(() => 0);
+    let left = cap;
+    let progressed = true;
+    while (left > 0 && progressed) {
+      progressed = false;
+      for (let i = 0; i < list.length && left > 0; i++) {
+        const max = list[i].stock == null ? Infinity : list[i].stock;
+        if (counts[i] < max) {
+          counts[i] += 1;
+          left -= 1;
+          progressed = true;
+        }
+      }
+    }
     return list
-      .map((m, i) => {
-        const quantity = base + (i < rem ? 1 : 0);
-        return {
-          macajouId: String(m._id || m.id),
-          name: m.name,
-          image: m.image || '',
-          quantity,
-        };
-      })
+      .map((m, i) => ({
+        macajouId: String(m._id || m.id),
+        name: m.name,
+        image: m.image || '',
+        quantity: counts[i],
+      }))
       .filter((c) => c.macajouId && c.quantity > 0);
   }
 

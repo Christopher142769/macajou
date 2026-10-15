@@ -403,7 +403,9 @@
                 <label><input type="checkbox" id="cActive" checked> Actif</label>
                 <label><input type="checkbox" id="cFeatured"> Sélection du jour</label>
                 <label><input type="checkbox" id="cLimited"> Édition limitée</label>
+                <label><input type="checkbox" id="cAvailable" checked> Disponible à la vente</label>
             </div>
+            <div class="field"><label>Quantité disponible (vide = illimité)</label><input id="cStock" type="number" min="0" step="1" placeholder="ex. 20"></div>
             <p class="field-hint" style="font-size:.85rem;opacity:.7;margin:-.4rem 0 1rem;line-height:1.4">Sélection du jour : plusieurs coffrets possibles dans la rubrique e-shop. Édition limitée : présentation spéciale (logo + occasions), hors packaging classique.</p>
             <p id="coffretError" class="err" hidden></p>
             <div class="dialog-actions">
@@ -439,6 +441,7 @@
               <button type="button" class="btn btn-ghost btn-sm media-picker-btn" id="pickMacajouImage">Choisir dans la galerie</button>
               <div id="mImagePreview" class="preview"></div>
             </div>
+            <div class="field"><label>Quantité disponible (vide = illimité, 0 = épuisé)</label><input id="mStock" type="number" min="0" step="1" placeholder="ex. 25"></div>
             <div class="grid2">
               <div class="field"><label>Ordre</label><input id="mOrder" type="number" value="0"></div>
               <div class="field check">

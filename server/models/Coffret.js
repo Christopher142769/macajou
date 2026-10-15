@@ -29,6 +29,9 @@ const coffretSchema = new mongoose.Schema(
     images: [{ type: String }],
     badge: { type: String, default: '' },
     active: { type: Boolean, default: true },
+    available: { type: Boolean, default: true },
+    /** Quantité disponible ; null = illimité. */
+    stock: { type: Number, min: 0, default: null },
     featured: { type: Boolean, default: false },
     limitedEdition: { type: Boolean, default: false },
     order: { type: Number, default: 0 },

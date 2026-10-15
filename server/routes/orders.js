@@ -6,6 +6,9 @@ const Macajou = require('../models/Macajou');
 const { requireAuth } = require('../middleware/auth');
 const fedapay = require('../services/fedapay');
 const { getSettings } = require('../services/settings');
+const stock = require('../services/stock');
+
+const RELEASING_STATUSES = ['annulée', 'injoignable'];
 
 const router = express.Router();
 
@@ -28,7 +31,7 @@ async function resolveComposition(raw, capacity) {
     if (!macajou || !macajou.active) {
       throw new Error(`Macajou indisponible : ${row.name || row.macajouId}`);
     }
-    if (macajou.available === false) {
+    if (macajou.available === false || !stock.hasStock(macajou, qty)) {
       throw new Error(`Saveur indisponible : ${macajou.name}`);
     }
     totalPieces += qty;
@@ -101,7 +104,7 @@ router.post('/', async (req, res) => {
 
       if (coffretId || item.type === 'coffret') {
         const coffret = await Coffret.findById(coffretId || item.productId);
-        if (!coffret || !coffret.active) {
+        if (!coffret || !coffret.active || coffret.available === false || !stock.hasStock(coffret, qty)) {
           return res.status(400).json({ error: `Coffret indisponible : ${item.name || coffretId}` });
         }
         const composition = await resolveComposition(item.composition || [], coffret.capacity);
@@ -143,7 +146,13 @@ router.post('/', async (req, res) => {
 
     const paymentStatus = paymentMethod === 'online' ? 'pending' : 'not_required';
 
-    const order = await Order.create({
+    if (!(await stock.reserve(resolved))) {
+      return res.status(400).json({ error: 'Stock insuffisant : une saveur ou un coffret vient de s’épuiser.' });
+    }
+
+    let order;
+    try {
+      order = await Order.create({
       customer: {
         firstName: customer.firstName,
         lastName: customer.lastName,
@@ -158,7 +167,11 @@ router.post('/', async (req, res) => {
       total: subtotal,
       paymentMethod,
       paymentStatus,
-    });
+      });
+    } catch (createErr) {
+      await stock.release(resolved);
+      throw createErr;
+    }
 
     if (paymentMethod === 'cash') {
       return res.status(201).json({ order, paymentUrl: null });
@@ -228,12 +241,19 @@ router.get('/:id', requireAuth, async (req, res) => {
 
 router.patch('/:id/status', requireAuth, async (req, res) => {
   try {
-    const order = await Order.findByIdAndUpdate(
-      req.params.id,
-      { status: req.body.status },
-      { new: true, runValidators: true }
-    );
+    const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ error: 'Commande introuvable' });
+    order.status = req.body.status;
+    if (RELEASING_STATUSES.includes(order.status) && !order.stockRestored) {
+      await stock.release(order.items);
+      order.stockRestored = true;
+    } else if (!RELEASING_STATUSES.includes(order.status) && order.stockRestored) {
+      if (!(await stock.reserve(order.items))) {
+        return res.status(400).json({ error: 'Stock insuffisant pour rétablir cette commande' });
+      }
+      order.stockRestored = false;
+    }
+    await order.save();
     res.json(order);
   } catch (err) {
     res.status(400).json({ error: err.message });

@@ -29,11 +29,20 @@ function kindFilter(kindQuery) {
   return { kind };
 }
 
-function normalizeBody(body) {
+function parseStock(value) {
+  if (value === '' || value == null) return null;
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function normalizeBody(body, { partial = false } = {}) {
   const data = { ...body };
-  data.slug = data.slug || toSlug(data.name || '');
-  data.capacity = Math.round(Number(data.capacity));
-  data.price = Number(data.price);
+  delete data._id;
+  if (data.slug || data.name != null) data.slug = data.slug || toSlug(data.name || '');
+  if (!partial || data.capacity != null) data.capacity = Math.round(Number(data.capacity));
+  if (!partial || data.price != null) data.price = Number(data.price);
+  if (data.available != null) data.available = !!data.available;
+  if ('stock' in data) data.stock = parseStock(data.stock);
   if (data.kind != null) data.kind = normalizeKind(data.kind);
   if (data.featured != null) data.featured = !!data.featured;
   if (data.limitedEdition != null) data.limitedEdition = !!data.limitedEdition;
@@ -69,7 +78,7 @@ router.get('/', async (req, res) => {
   try {
     const filter = { active: true, ...kindFilter(req.query.kind) };
     const items = await Coffret.find(filter).sort({ order: 1, capacity: 1, createdAt: 1 });
-    res.json(items);
+    res.json(items.map((c) => ({ ...c.toObject(), available: c.available !== false && c.stock !== 0 })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -126,7 +135,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 router.put('/:id', requireAuth, async (req, res) => {
   try {
-    const data = normalizeBody(req.body);
+    const data = normalizeBody(req.body, { partial: true });
     if (data.capacity != null && !isValidCapacity(data.capacity)) {
       return res.status(400).json({
         error: `Capacité invalide : indiquez un nombre entier entre ${CAPACITY_MIN} et ${CAPACITY_MAX}`,

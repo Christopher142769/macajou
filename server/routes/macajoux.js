@@ -9,18 +9,27 @@ function toSlug(name) {
   return slugify(name, { lower: true, strict: true, locale: 'fr' });
 }
 
-function normalizeBody(body) {
+function parseStock(value) {
+  if (value === '' || value == null) return null;
+  const n = Math.floor(Number(value));
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function normalizeBody(body, { partial = false } = {}) {
   const data = { ...body };
-  data.slug = data.slug || toSlug(data.name || '');
+  delete data._id;
+  if (data.slug || data.name != null) data.slug = data.slug || toSlug(data.name || '');
+  else if (!partial) data.slug = '';
   if (data.active != null) data.active = !!data.active;
   if (data.available != null) data.available = !!data.available;
+  if ('stock' in data) data.stock = parseStock(data.stock);
   return data;
 }
 
 router.get('/', async (_req, res) => {
   try {
     const items = await Macajou.find({ active: true }).sort({ order: 1, name: 1 });
-    res.json(items);
+    res.json(items.map((m) => ({ ...m.toObject(), available: m.available !== false && m.stock !== 0 })));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
@@ -58,7 +67,7 @@ router.post('/', requireAuth, async (req, res) => {
 
 router.put('/:id', requireAuth, async (req, res) => {
   try {
-    const data = normalizeBody(req.body);
+    const data = normalizeBody(req.body, { partial: true });
     const item = await Macajou.findByIdAndUpdate(req.params.id, data, {
       new: true,
       runValidators: true,

@@ -121,7 +121,8 @@
     const cur = qtyById[key] || 0;
     const others = totalPieces() - cur;
     const capacity = coffret.capacity;
-    const clamped = Math.max(0, Math.min(Number(next) || 0, capacity - others));
+    const maxStock = mac && mac.stock != null ? mac.stock : Infinity;
+    const clamped = Math.max(0, Math.min(Number(next) || 0, capacity - others, maxStock));
     if (clamped <= 0) delete qtyById[key];
     else qtyById[key] = clamped;
     render();
@@ -214,7 +215,8 @@
           ${macajoux
             .map((m) => {
               const q = qtyById[String(m._id)] || 0;
-              const canPlus = left > 0 || q > 0;
+              const stockLeft = m.stock == null ? Infinity : m.stock - q;
+              const canPlus = (left > 0 || q > 0) && stockLeft > 0;
               const available = m.available !== false;
               return `<article class="mac-card${available ? '' : ' is-unavailable'}" data-id="${esc(m._id)}"${available ? '' : ' aria-disabled="true"'}>
                 ${
