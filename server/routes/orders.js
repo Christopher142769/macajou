@@ -7,6 +7,7 @@ const { requireAuth } = require('../middleware/auth');
 const fedapay = require('../services/fedapay');
 const { getSettings } = require('../services/settings');
 const stock = require('../services/stock');
+const { sendOrderNotification } = require('../services/mailer');
 
 const RELEASING_STATUSES = ['annulée', 'injoignable'];
 
@@ -172,6 +173,9 @@ router.post('/', async (req, res) => {
       await stock.release(resolved);
       throw createErr;
     }
+
+    // E-mail automatique à l'équipe, sans bloquer ni faire échouer la commande
+    sendOrderNotification(order).catch((e) => console.error('Notification commande :', e.message));
 
     if (paymentMethod === 'cash') {
       return res.status(201).json({ order, paymentUrl: null });

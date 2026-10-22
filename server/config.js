@@ -12,6 +12,17 @@ module.exports = {
     .split(',')
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean),
+  /** Destinataires des e-mails « nouvelle commande » : ADMIN_EMAIL + ORDER_NOTIFY_EMAILS (ou OTP_EXTRA_EMAILS à défaut). */
+  orderNotifyEmails: [
+    ...new Set(
+      [
+        process.env.ADMIN_EMAIL || 'macajou0@gmail.com',
+        ...(process.env.ORDER_NOTIFY_EMAILS || process.env.OTP_EXTRA_EMAILS || 'nelly.chabi@gmail.com').split(','),
+      ]
+        .map((e) => e.trim().toLowerCase())
+        .filter(Boolean)
+    ),
+  ],
   smtpUser: process.env.SMTP_USER || '',
   smtpAppPassword: (process.env.SMTP_APP_PASSWORD || '').replace(/\s+/g, ''),
   resendApiKey: process.env.RESEND_API_KEY || '',

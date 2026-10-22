@@ -12,7 +12,7 @@ function withTimeout(promise, ms, label = 'Envoi email') {
   ]);
 }
 
-async function sendViaResend({ to, code }) {
+async function sendViaResend({ to, subject, html, text }) {
   if (!config.resendApiKey) return false;
   const from = config.resendFrom || 'Macajou Gourmandises <onboarding@resend.dev>';
   const res = await fetch('https://api.resend.com/emails', {
@@ -24,9 +24,9 @@ async function sendViaResend({ to, code }) {
     body: JSON.stringify({
       from,
       to: [to],
-      subject: `${code} ,  Code de connexion Macajou`,
-      html: emailHtml(code),
-      text: emailText(code),
+      subject,
+      html,
+      text,
     }),
   });
   if (!res.ok) {
@@ -36,7 +36,7 @@ async function sendViaResend({ to, code }) {
   return true;
 }
 
-async function sendViaBrevo({ to, code }) {
+async function sendViaBrevo({ to, subject, html, text }) {
   if (!config.brevoApiKey) return false;
   const senderEmail = config.smtpUser || config.adminEmail;
   if (!senderEmail) throw new Error('SMTP_USER (ou ADMIN_EMAIL) requis comme expéditeur Brevo');
@@ -50,9 +50,9 @@ async function sendViaBrevo({ to, code }) {
     body: JSON.stringify({
       sender: { name: 'Macajou Gourmandises', email: senderEmail },
       to: [{ email: to }],
-      subject: `${code} ,  Code de connexion Macajou`,
-      htmlContent: emailHtml(code),
-      textContent: emailText(code),
+      subject,
+      htmlContent: html,
+      textContent: text,
     }),
   });
   if (!res.ok) {
@@ -82,14 +82,14 @@ function createSmtpTransporter() {
   });
 }
 
-async function sendViaSmtp({ to, code }) {
+async function sendViaSmtp({ to, subject, html, text }) {
   const transporter = createSmtpTransporter();
   await transporter.sendMail({
     from: `"Macajou Gourmandises" <${config.smtpUser}>`,
     to,
-    subject: `${code} ,  Code de connexion Macajou`,
-    text: emailText(code),
-    html: emailHtml(code),
+    subject,
+    text,
+    html,
   });
   return true;
 }
@@ -111,11 +111,11 @@ function emailHtml(code) {
 }
 
 /**
- * Envoie le code OTP. Sur Render Free, SMTP est souvent bloqué :
+ * Envoi générique avec bascule entre fournisseurs. Sur Render Free, SMTP est souvent bloqué :
  * préférer RESEND_API_KEY ou BREVO_API_KEY (HTTPS).
  */
-async function sendLoginCode({ to, code }) {
-  const payload = { to, code };
+async function sendMail({ to, subject, html, text }) {
+  const payload = { to, subject, html, text };
   const attempts = [];
 
   if (config.resendApiKey) {
@@ -147,4 +147,87 @@ async function sendLoginCode({ to, code }) {
   throw lastError || new Error('Envoi email impossible');
 }
 
-module.exports = { sendLoginCode };
+/** Envoie le code OTP de connexion au dashboard. */
+async function sendLoginCode({ to, code }) {
+  return sendMail({
+    to,
+    subject: `${code} ,  Code de connexion Macajou`,
+    html: emailHtml(code),
+    text: emailText(code),
+  });
+}
+
+const esc = (v) =>
+  String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const fcfa = (n) => `${Number(n || 0).toLocaleString('fr-FR')} FCFA`;
+
+function orderLines(order) {
+  return (order.items || []).map((i) => {
+    const comp = (i.composition || []).length
+      ? (i.composition || []).map((c) => `${c.name} ×${c.quantity}`).join(', ')
+      : (i.flavors || []).join(', ');
+    return { titre: `${i.name} ×${i.quantity}`, detail: comp, total: Number(i.price || 0) * Number(i.quantity || 1) };
+  });
+}
+
+function orderEmail(order) {
+  const c = order.customer || {};
+  const online = order.paymentMethod === 'online';
+  const paiement = online
+    ? `En ligne (${order.paymentStatus === 'paid' ? 'payé' : 'en attente de paiement'})`
+    : 'À la livraison / en espèces';
+  const mode = c.fulfillment === 'pickup' ? 'Retrait en boutique' : 'Livraison';
+  const lines = orderLines(order);
+  const rows = [
+    ['Client', `${c.firstName || ''} ${c.lastName || ''}`.trim()],
+    ['Téléphone', c.phone],
+    ['Ville', c.city],
+    [mode, c.address],
+    ['Notes', c.notes || '—'],
+    ['Paiement', paiement],
+  ];
+  const html = `
+    <div style="font-family:Arial,sans-serif;background:#fbf5e8;padding:24px;color:#1c1611">
+      <div style="max-width:560px;margin:auto;background:#fffdf8;border-radius:16px;padding:28px">
+        <h1 style="margin:0 0 4px;color:#b5121b;font-size:22px">Nouvelle commande ${esc(order.orderNumber)}</h1>
+        <p style="margin:0 0 18px;color:#8a7f6f;font-size:14px">${esc(new Date(order.createdAt || Date.now()).toLocaleString('fr-FR', { timeZone: 'Africa/Porto-Novo' }))}</p>
+        <table cellpadding="6" style="font-size:14px;border-collapse:collapse;width:100%">
+          ${rows.map(([k, v]) => `<tr><td style="color:#8a7f6f;width:110px;vertical-align:top">${esc(k)}</td><td><b>${esc(v)}</b></td></tr>`).join('')}
+        </table>
+        <h2 style="font-size:15px;margin:20px 0 8px">Articles</h2>
+        <table cellpadding="6" style="font-size:14px;border-collapse:collapse;width:100%">
+          ${lines.map((l) => `<tr><td style="border-bottom:1px solid #eee"><b>${esc(l.titre)}</b>${l.detail ? `<br><span style="color:#8a7f6f;font-size:13px">${esc(l.detail)}</span>` : ''}</td><td style="border-bottom:1px solid #eee;text-align:right;white-space:nowrap">${esc(fcfa(l.total))}</td></tr>`).join('')}
+        </table>
+        <p style="text-align:right;font-size:18px;margin:16px 0 0"><b>Total : ${esc(fcfa(order.total))}</b></p>
+        <p style="margin:18px 0 0;font-size:13px;color:#8a7f6f">Gérez cette commande dans le dashboard : <a href="${esc(config.appUrl)}/dashboard/" style="color:#b5121b">${esc(config.appUrl)}/dashboard/</a></p>
+      </div>
+    </div>`;
+  const text = [
+    `Nouvelle commande ${order.orderNumber}`,
+    ...rows.map(([k, v]) => `${k} : ${v}`),
+    '',
+    ...lines.map((l) => `- ${l.titre}${l.detail ? ` (${l.detail})` : ''} : ${fcfa(l.total)}`),
+    `Total : ${fcfa(order.total)}`,
+  ].join('\n');
+  return {
+    subject: `Nouvelle commande ${order.orderNumber} · ${fcfa(order.total)} · ${c.city || ''}`.trim(),
+    html,
+    text,
+  };
+}
+
+/**
+ * Prévient l'équipe (ADMIN_EMAIL + ORDER_NOTIFY_EMAILS / OTP_EXTRA_EMAILS) d'une nouvelle commande.
+ * Ne lève jamais d'erreur : une commande ne doit pas échouer à cause d'un e-mail.
+ */
+async function sendOrderNotification(order) {
+  const recipients = config.orderNotifyEmails;
+  if (!recipients.length) return;
+  const mail = orderEmail(order);
+  const results = await Promise.allSettled(recipients.map((to) => sendMail({ to, ...mail })));
+  results.forEach((r, i) => {
+    if (r.status === 'rejected') console.error(`Email nouvelle commande non envoyé (${recipients[i]}) :`, r.reason?.message);
+  });
+}
+
+module.exports = { sendLoginCode, sendMail, sendOrderNotification, orderEmail };
