@@ -1,5 +1,7 @@
 /** Fiche coffret — composition manuelle ou confiance à la créatrice */
 (function () {
+  /* À partir de ce stock restant, la carte signale « Plus que N » */
+  const LOW_STOCK = 10;
   const params = new URLSearchParams(location.search);
   let slug = params.get('slug') || '';
   const trustLocked = params.get('trust') === '1';
@@ -218,13 +220,25 @@
               const stockLeft = m.stock == null ? Infinity : m.stock - q;
               const canPlus = (left > 0 || q > 0) && stockLeft > 0;
               const available = m.available !== false;
-              return `<article class="mac-card${available ? '' : ' is-unavailable'}" data-id="${esc(m._id)}"${available ? '' : ' aria-disabled="true"'}>
+              const low = available && m.stock != null && m.stock <= LOW_STOCK;
+              const maxed = available && m.stock != null && q >= m.stock;
+              const stockBadge = !available
+                ? `<span class="mac-stock">${m.stock === 0 ? 'Épuisé' : 'Indisponible'}</span>`
+                : maxed
+                  ? '<span class="mac-stock is-max">Maximum atteint</span>'
+                  : low
+                    ? `<span class="mac-stock is-low">Plus que ${m.stock - q}</span>`
+                    : m.stock != null
+                      ? `<span class="mac-stock">${m.stock} disponibles</span>`
+                      : '<span class="mac-stock">En stock</span>';
+              return `<article class="mac-card${available ? '' : ' is-unavailable'}${m.stock === 0 ? ' is-out' : ''}${low ? ' is-low' : ''}" data-id="${esc(m._id)}"${available ? '' : ' aria-disabled="true"'}>
                 ${
                   m.image
                     ? `<img src="${esc(m.image)}" alt="${esc(m.name)}">`
                     : `<div class="ph">${esc(m.name.slice(0, 1))}</div>`
                 }
                 <div class="name">${esc(m.name)}</div>
+                ${stockBadge}
                 ${
                   available
                     ? `<div class="qty">
@@ -232,7 +246,7 @@
                   <span>${q}</span>
                   <button type="button" data-inc ${!canPlus || left <= 0 ? 'disabled' : ''} aria-label="Ajouter">+</button>
                 </div>`
-                    : '<span class="mac-unavailable">Indisponible</span>'
+                    : ''
                 }
               </article>`;
             })
