@@ -47,6 +47,7 @@ async function api(url, options = {}) {
 }
 
 function showApp() {
+  try { localStorage.setItem('mj_notrack', '1'); } catch {} // vos visites ne comptent pas dans les statistiques
   loginView.hidden = true;
   app.hidden = false;
   Promise.all([
@@ -146,6 +147,7 @@ codeForm.addEventListener('submit', async (e) => {
     if (!data.token) throw new Error('Réponse invalide du serveur');
     token = data.token;
     localStorage.setItem(TOKEN_KEY, token);
+    try { localStorage.setItem('mj_notrack', '1'); } catch {} // vos propres visites ne comptent pas dans les statistiques
     showApp();
   } catch (ex) {
     err.textContent = ex.message || 'Code invalide';
@@ -1585,13 +1587,41 @@ clubForm?.addEventListener('submit', async (e) => {
   }
 });
 
+let ordersCache = [];
+let ordersStatusFilter = new Set();
+let ordersSearch = '';
+
 async function loadOrders() {
-  const orders = await api('/api/orders', { headers: authHeaders(false) });
+  ordersCache = await api('/api/orders', { headers: authHeaders(false) });
+  renderOrders();
+}
+
+function ordersMatchSearch(o, q) {
+  if (!q) return true;
+  const hay = [
+    o.orderNumber, o.customer?.firstName, o.customer?.lastName, o.customer?.phone, o.customer?.city, o.customer?.address,
+    ...(o.items || []).flatMap((i) => [i.name, ...(i.composition || []).map((c) => c.name), ...(i.flavors || [])]),
+  ].join(' ').toLowerCase();
+  return q.toLowerCase().split(/\s+/).every((w) => hay.includes(w));
+}
+
+function renderOrders() {
+  const allOrders = ordersCache;
   const statuses = ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée', 'injoignable'];
   const statusLabel = (s) => (s === 'injoignable' ? 'Injoignable' : s);
+  const counts = {};
+  allOrders.forEach((o) => { counts[o.status] = (counts[o.status] || 0) + 1; });
+  const chips = document.getElementById('ordersStatusChips');
+  if (chips) {
+    chips.innerHTML =
+      `<button type="button" class="an-chip" data-ostatus="" aria-pressed="${ordersStatusFilter.size === 0}">Toutes<b>${allOrders.length}</b></button>` +
+      statuses.map((s) => `<button type="button" class="an-chip" data-ostatus="${s}" aria-pressed="${ordersStatusFilter.has(s)}">${statusLabel(s)}<b>${counts[s] || 0}</b></button>`).join('');
+  }
+  const orders = allOrders.filter((o) => (!ordersStatusFilter.size || ordersStatusFilter.has(o.status)) && ordersMatchSearch(o, ordersSearch));
+  const info = document.getElementById('ordersFilterInfo');
+  if (info) info.textContent = orders.length === allOrders.length ? `${allOrders.length} commande(s)` : `${orders.length} sur ${allOrders.length} commande(s)`;
 
-  const pending = orders.filter((o) => o.status === 'reçue').length;
-  setBadge('badgeOrders', pending);
+  setBadge('badgeOrders', allOrders.filter((o) => o.status === 'reçue').length);
 
   const payLabel = (o) => {
     const method = o.paymentMethod === 'online' ? 'En ligne' : 'Espèces';
@@ -1615,7 +1645,7 @@ async function loadOrders() {
 
   document.getElementById('ordersList').innerHTML = `
     <table>
-      <thead><tr><th>N°</th><th>Client</th><th>Retrait / Livraison</th><th>Articles</th><th>Paiement</th><th>Total</th><th>Statut</th><th>Date</th></tr></thead>
+      <thead><tr><th>N°</th><th>Client</th><th>Retrait / Livraison</th><th>Articles</th><th>Paiement</th><th>Total</th><th>Statut</th><th>Source</th><th>Date</th></tr></thead>
       <tbody>
         ${orders
           .map(
@@ -1632,10 +1662,11 @@ async function loadOrders() {
                 ${statuses.map((s) => `<option value="${s}" ${o.status === s ? 'selected' : ''}>${statusLabel(s)}</option>`).join('')}
               </select>
             </td>
+            <td><small>${escapeHtml(o.attribution?.source ? o.attribution.source.charAt(0).toUpperCase() + o.attribution.source.slice(1) : '—')}${o.attribution?.campaign ? `<br>${escapeHtml(o.attribution.campaign)}` : ''}</small></td>
             <td>${formatDate(o.createdAt)}</td>
           </tr>`
           )
-          .join('') || '<tr><td colspan="8">Aucune commande</td></tr>'}
+          .join('') || '<tr><td colspan="9">Aucune commande avec ces filtres</td></tr>'}
       </tbody>
     </table>`;
 }
@@ -1715,6 +1746,9 @@ document.getElementById('ordersList').addEventListener('change', async (e) => {
     headers: authHeaders(),
     body: JSON.stringify({ status: sel.value }),
   });
+  const cached = ordersCache.find((o) => o._id === sel.dataset.order);
+  if (cached) cached.status = sel.value;
+  renderOrders();
   loadAnalytics();
 });
 
@@ -1987,3 +2021,18 @@ document.getElementById('textSections')?.addEventListener('click', async (e) => 
     showLogin();
   }
 })();
+
+/* Filtres de la liste des commandes */
+document.getElementById('ordersStatusChips')?.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-ostatus]');
+  if (!b) return;
+  const st = b.dataset.ostatus;
+  if (!st) ordersStatusFilter.clear();
+  else if (ordersStatusFilter.has(st)) ordersStatusFilter.delete(st);
+  else ordersStatusFilter.add(st);
+  renderOrders();
+});
+document.getElementById('ordersSearch')?.addEventListener('input', (e) => {
+  ordersSearch = e.target.value.trim();
+  renderOrders();
+});

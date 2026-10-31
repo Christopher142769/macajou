@@ -70,6 +70,11 @@
         <span>Vue d’ensemble</span>
       </button>
 
+      <button type="button" data-tab="analytics" data-title="Analytics · Trafic & conversions">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 20h18"/><path d="M6 16V9M11 16V5M16 16v-5M21 16V7" stroke-linecap="round"/></svg>
+        <span>Analytics</span>
+      </button>
+
       <p class="side-cat">Boutique</p>
       <button type="button" data-tab="products" data-title="Galerie produits">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7l8-4 8 4v10l-8 4-8-4V7z"/><path d="M4 7l8 4 8-4M12 11v10"/></svg>
@@ -186,6 +191,7 @@
               <input type="date" id="reportEnd">
             </div>
             <button type="button" class="btn btn-primary report-apply" id="applyReport">Appliquer</button>
+            <button type="button" class="btn btn-ghost btn-sm" data-goto="analytics" title="Filtrer par statut, saveur ou coffret">Filtrer par saveur / coffret / statut →</button>
           </div>
           <div class="export-menu">
             <span>Exporter le bilan</span>
@@ -289,6 +295,157 @@
           </article>
         </div>
       </section>
+      <!-- ANALYTICS -->
+      <section id="tab-analytics" class="tab">
+        <div class="analytics-hero">
+          <div class="analytics-copy">
+            <span class="eyebrow">Analytics</span>
+            <h2>Trafic, sources &amp; conversions</h2>
+            <p>Qui visite Macajou, d’où ils viennent (Facebook, Instagram, TikTok, WhatsApp, Google…), ce qu’ils regardent, et ce qui se transforme en commande.</p>
+          </div>
+          <div class="analytics-orb" aria-hidden="true"><span>%</span></div>
+        </div>
+
+        <div class="report-toolbar">
+          <div class="report-filters">
+            <div class="compact-field">
+              <label for="anPeriod">Période</label>
+              <select id="anPeriod">
+                <option value="today">Aujourd’hui</option>
+                <option value="yesterday">Hier</option>
+                <option value="7d">7 derniers jours</option>
+                <option value="30d" selected>30 derniers jours</option>
+                <option value="90d">90 derniers jours</option>
+                <option value="year">Cette année</option>
+                <option value="all">Depuis le début</option>
+                <option value="custom">Dates personnalisées</option>
+              </select>
+            </div>
+            <div class="compact-field" id="anStartWrap" hidden><label for="anStart">Du</label><input type="date" id="anStart"></div>
+            <div class="compact-field" id="anEndWrap" hidden><label for="anEnd">Au</label><input type="date" id="anEnd"></div>
+            <div class="compact-field">
+              <label for="anSource">Source du trafic</label>
+              <select id="anSource"><option value="all">Toutes les sources</option></select>
+            </div>
+            <button type="button" class="btn btn-primary report-apply" id="anApply">Appliquer</button>
+          </div>
+          <span class="an-updated" id="anUpdated"></span>
+        </div>
+
+        <p class="an-note" id="anNoData" hidden>
+          <strong>Le suivi est actif.</strong> Les visites apparaîtront ici dès que des visiteurs arriveront sur le site (vos propres visites depuis ce navigateur ne sont pas comptées).
+          Pour savoir d’où viennent vos campagnes, utilisez les liens du <em>Générateur de liens</em> plus bas.
+        </p>
+
+        <div class="an-kpis" id="anKpis"></div>
+
+        <div class="an-grid">
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Affluence</span><h2>Visites et commandes par jour</h2></div>
+              <div class="chart-legend"><i class="lg red"></i> Visites · <i class="lg gold"></i> Commandes</div></div>
+            <div id="anSeries" class="an-chart"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Provenance</span><h2>Sources du trafic</h2></div></div>
+            <div id="anSources" class="an-bars"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Conversion</span><h2>Entonnoir de vente</h2></div></div>
+            <div id="anFunnel" class="an-funnel"></div>
+          </article>
+
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Performance par canal</span><h2>Détail des sources</h2></div></div>
+            <div class="table-wrap an-table"><table class="data-table" id="anSourcesTable"></table></div>
+          </article>
+
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Catalogue</span><h2>Coffrets : vues, ajouts au panier et ventes</h2></div></div>
+            <div class="table-wrap an-table"><table class="data-table" id="anCoffretsTable"></table></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Prospects</span><h2>Leads</h2></div></div>
+            <div id="anLeads" class="an-leads"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Audience</span><h2>Visiteurs &amp; appareils</h2></div></div>
+            <div id="anAudience" class="an-audience"></div>
+          </article>
+
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Community manager</span><h2>Meilleurs moments pour publier</h2></div><span class="muted" id="anBestSlot"></span></div>
+            <div id="anHeatmap" class="an-heat"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Navigation</span><h2>Pages les plus vues</h2></div></div>
+            <div id="anPages" class="an-bars"></div>
+          </article>
+
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Arrivée</span><h2>Pages d’entrée</h2></div></div>
+            <div id="anLandings" class="an-bars"></div>
+          </article>
+
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Publicité</span><h2>Campagnes (UTM)</h2></div></div>
+            <div class="table-wrap an-table"><table class="data-table" id="anCampaignsTable"></table></div>
+          </article>
+
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Outil</span><h2>Générateur de liens de campagne</h2></div></div>
+            <p class="muted an-help">Collez ces liens dans vos publicités, bios et stories : chaque visite et chaque commande sera rattachée à la bonne source et à la bonne campagne.</p>
+            <div class="an-utm">
+              <div class="compact-field"><label for="utmPage">Page de destination</label>
+                <select id="utmPage"><option value="/">Accueil</option><option value="/#collection">Collection de coffrets</option><option value="/club">Club Macajou</option><option value="/panier.html">Panier</option></select></div>
+              <div class="compact-field"><label for="utmSource">Réseau</label>
+                <select id="utmSource"><option value="facebook">Facebook</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option><option value="whatsapp">WhatsApp</option><option value="youtube">YouTube</option><option value="email">E-mail</option><option value="google">Google</option></select></div>
+              <div class="compact-field"><label for="utmMedium">Type</label>
+                <select id="utmMedium"><option value="paid">Publicité payante</option><option value="social">Publication organique</option><option value="bio">Lien en bio</option><option value="story">Story</option><option value="influence">Influenceur</option><option value="email">Newsletter</option></select></div>
+              <div class="compact-field"><label for="utmCampaign">Campagne</label><input id="utmCampaign" placeholder="ex. noel-2026"></div>
+              <div class="compact-field"><label for="utmContent">Variante (facultatif)</label><input id="utmContent" placeholder="ex. video-1"></div>
+            </div>
+            <div class="an-utm-out"><input id="utmOut" readonly><button type="button" class="btn btn-primary btn-sm" id="utmCopy">Copier le lien</button></div>
+          </article>
+        </div>
+
+        <div class="section-head an-sales-head">
+          <div>
+            <h2 class="section-title">Ventes détaillées</h2>
+            <p class="section-sub">Filtrez par statut, par format de coffret ou par saveur : combien de coffrets de 8, de 4… et combien de pièces de chaque saveur ont été commandés.</p>
+          </div>
+          <button type="button" class="btn btn-ghost btn-sm" id="anCsv">Exporter en CSV</button>
+        </div>
+        <div class="report-toolbar an-sales-filters">
+          <div class="report-filters">
+            <div class="compact-field"><label for="anCoffret">Coffret</label><select id="anCoffret"><option value="all">Tous les coffrets</option></select></div>
+            <div class="compact-field"><label for="anMacajou">Saveur</label><select id="anMacajou"><option value="all">Toutes les saveurs</option></select></div>
+            <div class="compact-field"><label for="anSalesSource">Source</label><select id="anSalesSource"><option value="all">Toutes</option></select></div>
+          </div>
+          <div class="an-chips" id="anStatusChips" role="group" aria-label="Statut des commandes"></div>
+        </div>
+        <div id="anSalesKpis" class="an-kpis an-kpis-4"></div>
+        <p id="anSalesFlavor" class="an-note an-note-strong" hidden></p>
+        <div class="an-grid">
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Saveurs</span><h2>Pièces commandées par saveur</h2></div></div>
+            <div id="anFlavors" class="an-bars"></div>
+          </article>
+          <article class="panel">
+            <div class="panel-head"><div><span class="eyebrow">Formats</span><h2>Coffrets vendus par format</h2></div></div>
+            <div id="anFormats" class="an-bars"></div>
+          </article>
+          <article class="panel an-wide">
+            <div class="panel-head"><div><span class="eyebrow">Résultat du filtre</span><h2>Dernières commandes</h2></div></div>
+            <div class="table-wrap an-table"><table class="data-table" id="anSalesTable"></table></div>
+          </article>
+        </div>
+      </section>
+
       <section id="tab-products" class="tab">
         <div class="section-head">
           <div>
@@ -631,6 +788,10 @@
           </label>
         </div>
         <p id="payToggleError" class="err" hidden></p>
+        <div class="orders-filters">
+          <div class="an-chips" id="ordersStatusChips" role="group" aria-label="Filtrer par statut"></div>
+          <div class="orders-search"><input type="search" id="ordersSearch" placeholder="Rechercher : nom, téléphone, n°, saveur, coffret…"><span id="ordersFilterInfo"></span></div>
+        </div>
         <div id="ordersList" class="table-wrap"></div>
       </section>
 
@@ -689,6 +850,7 @@
 </dialog>
 
 <div id="scrim" class="scrim" hidden></div>
-<script src="/dashboard/js/dashboard.js?v=20260824-availability"></script>
+<script src="/dashboard/js/dashboard.js?v=20261031-analytics"></script>
+<script src="/dashboard/js/analytics.js?v=20261031-analytics"></script>
 </body>
 </html>

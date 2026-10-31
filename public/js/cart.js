@@ -57,6 +57,10 @@ const Cart = (() => {
     }
   }
 
+  function track(type, data) {
+    try { if (window.MJTrack) window.MJTrack.event(type, data); } catch (e) {}
+  }
+
   function write(items) {
     localStorage.setItem(KEY, JSON.stringify(items));
     window.dispatchEvent(new CustomEvent('macajou:cart', { detail: items }));
@@ -87,6 +91,7 @@ const Cart = (() => {
       });
     }
     write(items);
+    track('add_to_cart', { itemType: '', itemId: id, itemName: product.name, qty, value: (Number(product.price) || 0) * qty });
     return items;
   }
 
@@ -120,6 +125,7 @@ const Cart = (() => {
         flavors: comp.map((c) => `${c.name} ×${c.quantity}`),
       });
     }
+    track('add_to_cart', { itemType: 'coffret', itemId: id, itemName: coffret.name, qty, value: (Number(coffret.price) || 0) * qty });
     write(items);
     return items;
   }

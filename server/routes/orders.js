@@ -7,6 +7,8 @@ const { requireAuth } = require('../middleware/auth');
 const fedapay = require('../services/fedapay');
 const { getSettings } = require('../services/settings');
 const stock = require('../services/stock');
+const AnalyticsEvent = require('../models/AnalyticsEvent');
+const { sanitize: sanitizeTrack } = require('./track');
 const { sendOrderNotification } = require('../services/mailer');
 
 const RELEASING_STATUSES = ['annulée', 'injoignable'];
@@ -54,6 +56,13 @@ async function resolveComposition(raw, capacity) {
     throw new Error(`Complétez le coffret : ${totalPieces}/${capacity} macajoux`);
   }
   return composition;
+}
+
+function trackingOf(raw) {
+  const t = sanitizeTrack({ ...(raw || {}), type: 'purchase' });
+  if (!t) return {};
+  const { vid, sid, source, medium, campaign, content, landing, device } = t;
+  return { vid, sid, source, medium, campaign, content, landing, device };
 }
 
 router.post('/', async (req, res) => {
@@ -168,10 +177,25 @@ router.post('/', async (req, res) => {
       total: subtotal,
       paymentMethod,
       paymentStatus,
+      attribution: trackingOf(req.body.tracking),
       });
     } catch (createErr) {
       await stock.release(resolved);
       throw createErr;
+    }
+
+    // Achat enregistré côté serveur pour la boucle d'analyse (fiable même si le client ferme la page)
+    const attr = order.toObject().attribution;
+    if (attr?.sid) {
+      AnalyticsEvent.create({
+        ...attr,
+        type: 'purchase',
+        path: '/commande',
+        itemType: 'coffret',
+        itemName: order.orderNumber,
+        qty: order.items.reduce((n, i) => n + (i.quantity || 0), 0),
+        value: order.total,
+      }).catch((e) => console.error('Suivi achat :', e.message));
     }
 
     // E-mail automatique à l'équipe, sans bloquer ni faire échouer la commande

@@ -349,6 +349,11 @@
     try {
       await loadData();
       pickCoffret();
+      try {
+        if (window.MJTrack && coffret) {
+          window.MJTrack.event('view_item', { itemType: 'coffret', itemId: String(coffret._id), itemName: coffret.name, value: Number(coffret.price) || 0 });
+        }
+      } catch (e) {}
       clearComposition();
       if (params.get('trust') === '1') setTrust(true);
       else render();

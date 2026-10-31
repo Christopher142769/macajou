@@ -57,6 +57,17 @@ const orderSchema = new mongoose.Schema(
     },
     fedapayTransactionId: { type: String, default: '' },
     stockRestored: { type: Boolean, default: false },
+    /** Origine de la commande (suivi du site) : source publicitaire, campagne, session. */
+    attribution: {
+      vid: { type: String, default: '' },
+      sid: { type: String, default: '' },
+      source: { type: String, default: '' },
+      medium: { type: String, default: '' },
+      campaign: { type: String, default: '' },
+      content: { type: String, default: '' },
+      landing: { type: String, default: '' },
+      device: { type: String, default: '' },
+    },
     status: {
       type: String,
       enum: ['reçue', 'confirmée', 'en préparation', 'livrée', 'annulée', 'injoignable'],

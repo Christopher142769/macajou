@@ -18,6 +18,8 @@ const mediaRoutes = require('./routes/media');
 const coffretRoutes = require('./routes/coffrets');
 const macajouRoutes = require('./routes/macajoux');
 const clubRoutes = require('./routes/club');
+const trackRoutes = require('./routes/track');
+const analyticsRoutes = require('./routes/analytics');
 const { ensureDefaultAdmin } = require('./services/admin');
 
 const app = express();
@@ -51,6 +53,8 @@ app.use('/api/media', mediaRoutes);
 app.use('/api/coffrets', coffretRoutes);
 app.use('/api/macajoux', macajouRoutes);
 app.use('/api/club', clubRoutes);
+app.use('/api/track', trackRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (_req, res) => res.json({ ok: true }));
 

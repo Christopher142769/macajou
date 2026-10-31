@@ -108,6 +108,7 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1797154881433769&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+<script src="/js/track.js?v=20261031-analytics" defer></script>
 </head>
 <body>
 <div class="shop-top">Commande · livraison ou retrait boutique</div>
@@ -545,6 +546,7 @@ form.addEventListener('submit', async (e)=>{
       fulfillment: mode,
     },
     paymentMethod,
+    tracking: (window.MJTrack && window.MJTrack.context()) || undefined,
     items: items.map(i => ({
       productId: i.productId,
       coffretId: i.coffretId || (i.type === 'coffret' ? i.productId : undefined),
@@ -595,6 +597,14 @@ form.addEventListener('submit', async (e)=>{
 syncFulfillmentUI();
 setStep(1);
 render();
+try {
+  // Passage en caisse : une seule fois par session
+  const cartNow = Cart.read();
+  if (cartNow.length && window.MJTrack && sessionStorage.getItem('mj_bc') !== window.MJTrack.context().sid) {
+    sessionStorage.setItem('mj_bc', window.MJTrack.context().sid);
+    window.MJTrack.event('begin_checkout', { qty: cartNow.reduce((n, i) => n + i.quantity, 0), value: cartNow.reduce((n, i) => n + i.quantity * (i.price || 0), 0) });
+  }
+} catch (e) {}
 checkOnlineAvailability();
 handlePaidReturn();
 window.addEventListener('macajou:cart', render);
